@@ -1,0 +1,15 @@
+graphql_post:
+  handler: src/lambda/graphql/post.handler
+  events:
+    - http:
+        path: graphql
+        method: post
+        cors: true
+
+graphiql_get:
+  handler: src/lambda/graphiql/get.handler
+  events:
+    - http:
+        path: graphiql
+        method: get
+        cors: true

@@ -1,0 +1,34 @@
+service:
+  name: hyperdoc-api
+
+frameworkVersion: ">=1.0.0 <2.0.0"
+
+plugins:
+  - serverless-webpack
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  region: eu-west-1
+  environment:
+    NODES_TABLE: Nodes_${self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:*"
+
+package:
+  individually: true
+
+functions:
+  - ${file(serverless/graphql-functions.yml)}
+
+resources:
+  - ${file(serverless/dynamodb.yml)}
