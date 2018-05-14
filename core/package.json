@@ -2,7 +2,17 @@
   "name": "hyperdoc-core",
   "version": "0.0.1",
   "description": "Hyperdoc :: Core library",
-  "homepage": "https://www.hyperdoc.io",
+  "author": "Ezequiel Foncubierta <ezequiel.foncubierta@gmail.com>",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyperdoc/hyperdoc.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hyperdoc/hyperdoc/issues"
+  },
+  "homepage": "https://hyperdoc.io",
+  "license": "Apache-2.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {

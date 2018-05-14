@@ -2,7 +2,17 @@
   "name": "hyperdoc-api",
   "version": "0.0.1",
   "description": "Hyperdoc :: REST API",
-  "homepage": "https://www.hyperdoc.io",
+  "author": "Ezequiel Foncubierta <ezequiel.foncubierta@gmail.com>",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyperdoc/hyperdoc.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hyperdoc/hyperdoc/issues"
+  },
+  "homepage": "https://hyperdoc.io",
+  "license": "Apache-2.0",
   "dependencies": {
     "apollo-server-lambda": "^1.3.6",
     "graphql": "^0.13.2",
