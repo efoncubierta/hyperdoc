@@ -44,6 +44,7 @@ export default class MappingService {
    *
    * @param {IExecutionContext} context - Execution context
    * @param {string} name - Mapping name
+   * @returns {Promise<IMapping>} A promise that contains the mapping, or null if missing
    */
   public static getByName(context: IExecutionContext, name: string): Promise<IMapping> {
     return context.stores.mappings.getByName(name).then((mapping) => {

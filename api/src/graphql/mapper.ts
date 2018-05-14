@@ -163,19 +163,19 @@ function processNestedProperty(
  * @param {boolean} propertyMultiple - Flag whether a property is multiple
  * @returns {FieldConfig} GraphQL field configuration
  */
-function processNodeProperty(
-  objectTypes: IGraphQLObjectTypes,
-  mappingName: string,
-  propertyMandatory: boolean = false,
-  propertyMultiple: boolean = false
-): FieldConfig {
-  return {
-    type: wrapProperty(objectTypes[mappingName], propertyMandatory, propertyMultiple),
-    resolve(node, _, ctx) {
-      return NodeService.get(ctx, node[mappingName]);
-    }
-  };
-}
+// function processNodeProperty(
+//   objectTypes: IGraphQLObjectTypes,
+//   mappingName: string,
+//   propertyMandatory: boolean = false,
+//   propertyMultiple: boolean = false
+// ): FieldConfig {
+//   return {
+//     type: wrapProperty(objectTypes[mappingName], propertyMandatory, propertyMultiple),
+//     resolve(node, _, ctx) {
+//       return NodeService.get(ctx, node[mappingName]);
+//     }
+//   };
+// }
 
 /**
  * Process a mapping property as GraphQL field.
@@ -203,13 +203,13 @@ function processProperty(
         property.mandatory,
         property.multiple
       );
-    case IMappingPropertyType.Node:
-      return processNodeProperty(
-        objectTypes,
-        (property as IMappingNodeProperty).mapping,
-        property.mandatory,
-        property.multiple
-      );
+    // case IMappingPropertyType.Node:
+    //   return processNodeProperty(
+    //     objectTypes,
+    //     (property as IMappingNodeProperty).mapping,
+    //     property.mandatory,
+    //     property.multiple
+    //   );
     default:
       return processScalarProperty(objectTypes, propertyName, property.type, property.mandatory, property.multiple);
   }

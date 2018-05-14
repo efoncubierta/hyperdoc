@@ -5,7 +5,7 @@ import { IExecutionContext } from "../model/IExecutionContext";
 import { MappingService } from "..";
 import { IMapping } from "../model/IMapping";
 
-import NodeValidation from "../validation/NodeValidation";
+import NodeValidator from "../validation/NodeValidator";
 import { NodeSchema } from "../validation/schemas/Node";
 import { IAudit } from "../model/IAudit";
 
@@ -43,9 +43,9 @@ export default class NodeService {
       const now = new Date();
       const audit: IAudit = {
         createdAt: now.toISOString(),
-        createdBy: "",
+        createdBy: context.auth.userUuid,
         modifiedAt: now.toISOString(),
-        modifiedBy: ""
+        modifiedBy: context.auth.userUuid
       };
 
       // build node with new UUID
@@ -82,7 +82,7 @@ export default class NodeService {
           createdAt: node.audit.createdAt,
           createdBy: node.audit.createdBy,
           modifiedAt: now.toISOString(),
-          modifiedBy: ""
+          modifiedBy: context.auth.userUuid
         };
 
         // set new node details
@@ -124,9 +124,7 @@ export default class NodeService {
    */
   private static validateNode(node: INode, mapping: IMapping) {
     // get a validator for the mapping or default node validator if new mapping
-    const validator = mapping
-      ? NodeValidation.getNodeValidatorFromMapping(mapping)
-      : NodeValidation.getDefaultNodeValidator();
+    const validator = mapping ? NodeValidator.getValidatorFromMapping(mapping) : NodeValidator.getDefaultValidator();
 
     // validate node against the JSON schema and process errors
     const result = validator.validate(node, NodeSchema);

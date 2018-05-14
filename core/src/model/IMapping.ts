@@ -16,13 +16,12 @@ export interface IMappingRef {
  * Types of properties allowed in a mapping.
  */
 export enum IMappingPropertyType {
-  Integer,
-  Text,
-  Float,
-  Boolean,
-  Date,
-  Nested,
-  Node
+  Integer = "integer",
+  Text = "text",
+  Float = "float",
+  Boolean = "boolean",
+  Date = "date",
+  Nested = "nested"
 }
 
 /**

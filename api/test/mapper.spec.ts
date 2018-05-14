@@ -13,12 +13,12 @@ const MAPPINGS: IMappings = {
     uuid: UUID.v1(),
     name: "Type1",
     properties: {
-      type2: {
-        type: IMappingPropertyType.Node,
-        mandatory: true,
-        multiple: false,
-        mapping: "Type2"
-      },
+      // type2: {
+      //   type: IMappingPropertyType.Node,
+      //   mandatory: true,
+      //   multiple: false,
+      //   mapping: "Type2"
+      // },
       name: {
         type: IMappingPropertyType.Text,
         mandatory: true,
@@ -85,7 +85,6 @@ describe("REST API :: GraphQL :: Schema", () => {
         const type1TypeFields = type1Type.getFields();
         expect(type1Type).to.exist;
 
-        expect(type1TypeFields.type2).to.exist;
         expect(type1TypeFields.name).to.exist;
         expect(type1TypeFields.dates).to.exist;
         expect(type1TypeFields.tags).to.exist;

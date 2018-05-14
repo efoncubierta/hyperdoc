@@ -4,7 +4,13 @@ export const NodePropertySchema: Schema = {
   id: "/NodeProperty",
   oneOf: [
     {
-      type: ["string", "number", "boolean", "array"]
+      type: ["string", "number", "boolean"]
+    },
+    {
+      type: "array",
+      items: {
+        type: ["string", "number", "boolean"]
+      }
     },
     {
       $ref: "/NodeProperties"

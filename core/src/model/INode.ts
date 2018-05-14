@@ -16,17 +16,21 @@ export interface INodeRef {
 }
 
 /**
+ * Allowed values for a node property.
+ */
+export type INodePropertyType = string | number | boolean | INodeProperties | INodePropertiesArray;
+/**
  * Node properties.
  */
 export interface INodeProperties {
-  [x: string]: string | number | boolean | INodeProperties | INodePropertiesArray;
+  [x: string]: INodePropertyType;
 }
 
 /**
  * Array of node properties.
  */
 export interface INodePropertiesArray
-  extends Array<string | number | boolean | INodeProperties | INodePropertiesArray> {}
+  extends Array<string | number | boolean> {}
 
 /**
  * Node.
