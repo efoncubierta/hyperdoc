@@ -4,8 +4,7 @@ node_js:
   - "8"
 
 install:
-  - npm install
-  - npm run install_modules
+  - npm run install:all
 
 script:
   - npm run test

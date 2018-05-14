@@ -13,25 +13,42 @@
   },
   "homepage": "https://hyperdoc.io",
   "license": "Apache-2.0",
-  "dependencies": {},
+  "dependencies": {
+    "source-map-support": "^0.5.0"
+  },
   "devDependencies": {
+    "@types/node": "^8.10.13",
     "codecov": "^3.0.2",
     "mocha": "^5.1.1",
     "nyc": "^11.7.3",
+    "ts-loader": "^2.3.7",
+    "serverless-webpack": "^4.0.0",
     "ts-node": "^6.0.3",
-    "typescript": "^2.8.3"
+    "typescript": "^2.5.2",
+    "webpack": "^3.6.0"
   },
   "scripts": {
-    "install_core": "cd core && npm install && cd ..",
-    "install_api": "cd api && npm install && cd ..",
-    "install_modules": "npm run install_core && npm run install_api",
+    "install:core": "cd core && npm install && cd ..",
+    "install:api": "cd api && npm install && cd ..",
+    "install:modules": "npm run install:core && npm run install:api",
+    "install:root": "npm install",
+    "install:all": "npm run install:root && npm run install:modules",
+    "clean:core": "cd core && npm run clean && cd ..",
+    "clean:api": "cd api && npm run clean && cd ..",
+    "clean:modules": "npm run clean:core && npm run clean:api",
+    "clean:root": "rm -rf .nyc_output coverage node_modules",
+    "clean:all": "npm run clean:root && npm run clean:modules",
     "test:unit": "./node_modules/.bin/mocha -r ts-node/register {api,core}/test/**/*.spec.ts",
     "test": "./node_modules/.bin/nyc -e '.ts' --r html -r lcov -r text npm run test:unit",
     "codecov": "./node_modules/.bin/codecov"
   },
   "nyc": {
-    "exclude": ["{api,core}/test/**/*.ts"],
-    "include": ["{api,core}/src/**/*.ts"],
+    "exclude": [
+      "{api,core}/test/**/*.ts"
+    ],
+    "include": [
+      "{api,core}/src/**/*.ts"
+    ],
     "all": true
   }
 }
