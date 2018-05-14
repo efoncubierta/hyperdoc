@@ -28,5 +28,8 @@
     "test:unit": "./node_modules/.bin/mocha -r ts-node/register {api,core}/test/**/*.spec.ts",
     "test": "./node_modules/.bin/nyc -e '.ts' --r html -r lcov -r text npm run test:unit",
     "codecov": "./node_modules/.bin/codecov"
+  },
+  "nyc": {
+    "exclude": ["{api,core}/test/**/*.ts", "build"]
   }
 }
