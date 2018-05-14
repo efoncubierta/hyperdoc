@@ -2,6 +2,9 @@ import * as _ from "underscore";
 import { INode } from "../../../src/model/INode";
 import INodeStore from "../../../src/store/INodeStore";
 
+/**
+ * Manage node data in memory.
+ */
 export default class NodeInmemoryStore implements INodeStore {
   private nodes: INode[] = [];
 

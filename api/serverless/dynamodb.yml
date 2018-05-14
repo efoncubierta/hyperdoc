@@ -1,5 +1,5 @@
 Resources:
-  RacesDynamoDbTable:
+  NodesDynamoDbTable:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: ${self:provider.environment.NODES_TABLE}
@@ -8,6 +8,20 @@ Resources:
           AttributeType: S
       KeySchema:
         - AttributeName: uuid
+          KeyType: HASH
+      ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+  MappingsDynamoDbTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:provider.environment.MAPPINGS_TABLE}
+      AttributeDefinitions:
+        - AttributeName: name
+          AttributeType: S
+      KeySchema:
+        - AttributeName: name
           KeyType: HASH
       ProvisionedThroughput:
           ReadCapacityUnits: 1

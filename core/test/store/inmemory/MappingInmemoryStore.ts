@@ -2,6 +2,9 @@ import * as _ from "underscore";
 import { IMapping, IMappings } from "../../../src/model/IMapping";
 import IMappingStore from "../../../src/store/IMappingStore";
 
+/**
+ * Manage mapping data in memory.
+ */
 export default class MappingInmemoryStore implements IMappingStore {
   private mappings: IMapping[] = [];
 

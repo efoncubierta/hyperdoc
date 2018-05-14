@@ -16,7 +16,7 @@ export default class MappingDynamoDBStore implements IMappingStore {
     const documentClient = new DynamoDB.DocumentClient();
 
     return new Promise((resolve, reject) => {
-      documentClient.query(
+      documentClient.scan(
         {
           TableName: this.tableName
         },
@@ -62,10 +62,10 @@ export default class MappingDynamoDBStore implements IMappingStore {
     const documentClient = new DynamoDB.DocumentClient();
 
     return new Promise((resolve, reject) => {
-      documentClient.scan(
+      documentClient.query(
         {
           TableName: this.tableName,
-          FilterExpression: "name = :name",
+          KeyConditionExpression: "name = :name",
           ExpressionAttributeValues: { ":name": name }
         },
         (error, result) => {

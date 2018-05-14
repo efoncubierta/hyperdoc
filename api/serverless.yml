@@ -13,6 +13,7 @@ provider:
   region: eu-west-1
   environment:
     NODES_TABLE: Nodes_${self:provider.stage}
+    MAPPINGS_TABLE: Mappings_${self:provider.stage}
   iamRoleStatements:
     - Effect: Allow
       Action:
