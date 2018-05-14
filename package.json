@@ -30,6 +30,8 @@
     "codecov": "./node_modules/.bin/codecov"
   },
   "nyc": {
-    "exclude": ["{api,core}/test/**/*.ts", "build"]
+    "exclude": ["{api,core}/test/**/*.ts"],
+    "include": ["{api,core}/src/**/*.ts"],
+    "all": true
   }
 }
