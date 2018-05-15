@@ -1,15 +1,15 @@
 import * as UUID from "uuid";
 
-import { IExecutionContext } from "../model/IExecutionContext";
+import { ExecutionContext } from "../model/ExecutionContext";
 import {
-  IMappingKey,
-  IMapping,
-  IMappingProperties,
+  MappingKey,
+  Mapping,
+  MappingProperties,
   MappingBuilder,
-  IMappingPropertyType,
-  IMappingProperty,
-  IMappings
-} from "../model/IMapping";
+  MappingPropertyType,
+  MappingProperty,
+  Mappings
+} from "../model/Mapping";
 
 /**
  * Service to manage mappings from the user space.
@@ -18,21 +18,21 @@ export default class MappingService {
   /**
    * Get all mappings.
    *
-   * @param {IExecutionContext} context - Execution context
-   * @returns {Promise<IMappings>} A promise that contains a mappings dictionary
+   * @param {ExecutionContext} context - Execution context
+   * @returns {Promise<Mappings>} A promise that contains a mappings dictionary
    */
-  public static list(context: IExecutionContext): Promise<IMappings> {
+  public static list(context: ExecutionContext): Promise<Mappings> {
     return context.stores.mappings.list();
   }
 
   /**
    * Get a mapping.
    *
-   * @param {IExecutionContext} context - Execution context
+   * @param {ExecutionContext} context - Execution context
    * @param {string} uuid - Mapping uuid
-   * @returns {Promise<IMapping>} A promise that contains the mapping, or null if missing
+   * @returns {Promise<Mapping>} A promise that contains the mapping, or null if missing
    */
-  public static get(context: IExecutionContext, uuid: string): Promise<IMapping> {
+  public static get(context: ExecutionContext, uuid: string): Promise<Mapping> {
     return context.stores.mappings.get(uuid).then((mapping) => {
       // TODO check permissions
       return mapping;
@@ -42,11 +42,11 @@ export default class MappingService {
   /**
    * Get a mapping by its name.
    *
-   * @param {IExecutionContext} context - Execution context
+   * @param {ExecutionContext} context - Execution context
    * @param {string} name - Mapping name
-   * @returns {Promise<IMapping>} A promise that contains the mapping, or null if missing
+   * @returns {Promise<Mapping>} A promise that contains the mapping, or null if missing
    */
-  public static getByName(context: IExecutionContext, name: string): Promise<IMapping> {
+  public static getByName(context: ExecutionContext, name: string): Promise<Mapping> {
     return context.stores.mappings.getByName(name).then((mapping) => {
       // TODO check permissions
       return mapping;
@@ -56,12 +56,12 @@ export default class MappingService {
   /**
    * Create a new mapping.
    *
-   * @param {IExecutionContext} context - Execution context
+   * @param {ExecutionContext} context - Execution context
    * @param {string} name - Mapping name
-   * @param {IMappingProperties} properties - Mapping properties
-   * @returns {Promise<IMapping>} A promise that contains the mapping just created
+   * @param {MappingProperties} properties - Mapping properties
+   * @returns {Promise<Mapping>} A promise that contains the mapping just created
    */
-  public static create(context: IExecutionContext, name: string, properties: IMappingProperties): Promise<IMapping> {
+  public static create(context: ExecutionContext, name: string, properties: MappingProperties): Promise<Mapping> {
     // TODO check permissions
 
     // build mapping with new UUID
@@ -77,16 +77,16 @@ export default class MappingService {
   /**
    * Set mapping properties.
    *
-   * @param {IExecutionContext} context - Execution context
+   * @param {ExecutionContext} context - Execution context
    * @param {string} uuid - Mapping uuid
-   * @param {IMappingProperties} properties - Mapping properties
-   * @returns {Promise<IMapping>} A promise that contains the mapping just updated
+   * @param {MappingProperties} properties - Mapping properties
+   * @returns {Promise<Mapping>} A promise that contains the mapping just updated
    */
   public static setProperties(
-    context: IExecutionContext,
+    context: ExecutionContext,
     uuid: string,
-    properties: IMappingProperties
-  ): Promise<IMapping> {
+    properties: MappingProperties
+  ): Promise<Mapping> {
     return this.getOrError(context, uuid).then((mapping) => {
       // TODO check permissions
 
@@ -101,11 +101,11 @@ export default class MappingService {
   /**
    * Get a mapping or fail.
    *
-   * @param {IExecutionContext} context - Execution context
+   * @param {ExecutionContext} context - Execution context
    * @param {string} uuid - Mapping uuid
-   * @returns {Promise<IMapping>} A promise that contains the mapping, or it gets rejected
+   * @returns {Promise<Mapping>} A promise that contains the mapping, or it gets rejected
    */
-  private static getOrError(context: IExecutionContext, uuid: string): Promise<IMapping> {
+  private static getOrError(context: ExecutionContext, uuid: string): Promise<Mapping> {
     return this.get(context, uuid).then((mapping) => {
       // does the mapping exist?
       if (!mapping) {

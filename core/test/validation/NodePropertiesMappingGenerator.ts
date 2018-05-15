@@ -4,27 +4,27 @@ import "mocha";
 
 import TestDataGenerator from "../util/TestDataGenerator";
 import NodePropertiesMappingGenerator from "../../src/validation/NodePropertiesMappingGenerator";
-import { IMappingProperties, IMappingPropertyType, IMappingProperty } from "../../src/model/IMapping";
-import { INodeProperties } from "../../src/model/INode";
+import { MappingProperties, MappingPropertyType, MappingProperty } from "../../src/model/Mapping";
+import { NodeProperties } from "../../src/model/Node";
 
-function validateMappingProperty(nodeProperty: any, mappingProperty: IMappingProperty) {
+function validateMappingProperty(nodeProperty: any, mappingProperty: MappingProperty) {
   if (Array.isArray(nodeProperty)) {
     expect(mappingProperty.multiple).to.be.true;
     validateMappingProperty(nodeProperty[0], mappingProperty); // recursion
   } else if (typeof nodeProperty === "string") {
-    expect(mappingProperty.type).to.be.oneOf([IMappingPropertyType.Date, IMappingPropertyType.Text]);
+    expect(mappingProperty.type).to.be.oneOf([MappingPropertyType.Date, MappingPropertyType.Text]);
   } else if (typeof nodeProperty === "number") {
-    expect(mappingProperty.type).to.be.oneOf([IMappingPropertyType.Integer, IMappingPropertyType.Float]);
+    expect(mappingProperty.type).to.be.oneOf([MappingPropertyType.Integer, MappingPropertyType.Float]);
   } else if (typeof nodeProperty === "boolean") {
-    expect(mappingProperty.type).to.equal(IMappingPropertyType.Boolean);
+    expect(mappingProperty.type).to.equal(MappingPropertyType.Boolean);
   } else if (typeof nodeProperty === "object") {
-    expect(mappingProperty.type).to.equal(IMappingPropertyType.Nested);
+    expect(mappingProperty.type).to.equal(MappingPropertyType.Nested);
   } else {
     throw new Error(`Unknown node property value ${nodeProperty}`);
   }
 }
 
-function validateMapping(nodeProperties: INodeProperties, mappingProperties: IMappingProperties) {
+function validateMapping(nodeProperties: NodeProperties, mappingProperties: MappingProperties) {
   Object.keys(nodeProperties).forEach((propertyName) => {
     const nodeProperty = nodeProperties[propertyName];
     const mappingProperty = mappingProperties[propertyName];

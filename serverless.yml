@@ -29,7 +29,8 @@ package:
   individually: true
 
 functions:
-  - ${file(serverless/graphql-functions.yml)}
+  - ${file(serverless/api-functions.yml)}
+  - ${file(serverless/backend-functions.yml)}
 
 resources:
   - ${file(serverless/dynamodb.yml)}

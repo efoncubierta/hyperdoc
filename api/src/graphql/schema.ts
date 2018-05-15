@@ -1,14 +1,14 @@
 import mappingsToGraphql from "./mapper";
 import { MappingService } from "hyperdoc-core";
 import { GraphQLSchema } from "graphql";
-import { IExecutionContext } from "hyperdoc-core/dist/model/IExecutionContext";
+import { ExecutionContext } from "hyperdoc-core/dist/model/ExecutionContext";
 
 /**
  * Get a GraphQL schema from mapping service.
  *
  * @returns {Promise<GraphQLSchema>} GraphQL schema
  */
-function getGraphqlSchema(context: IExecutionContext): Promise<GraphQLSchema> {
+function getGraphqlSchema(context: ExecutionContext): Promise<GraphQLSchema> {
   return MappingService.list(context).then(mappingsToGraphql);
 }
 

@@ -15,15 +15,15 @@ import { GraphQLOutputType, GraphQLUnionType } from "graphql/type";
 import { NodeService } from "hyperdoc-core";
 
 import {
-  IMappingPropertyType,
-  IMapping,
-  IMappingProperties,
-  IMappingProperty,
-  IMappingNestedProperty,
-  IMappingNodeProperty,
-  IMappings
-} from "hyperdoc-core/dist/model/IMapping";
-import { IExecutionContext } from "hyperdoc-core/dist/model/IExecutionContext";
+  MappingPropertyType,
+  Mapping,
+  MappingProperties,
+  MappingProperty,
+  MappingNestedProperty,
+  MappingNodeProperty,
+  Mappings
+} from "hyperdoc-core/dist/model/Mapping";
+import { ExecutionContext } from "hyperdoc-core/dist/model/ExecutionContext";
 
 // GraphQL fields definition for typing
 type FieldConfig = GraphQLFieldConfig<any, any>;
@@ -75,20 +75,20 @@ function wrapProperty(
  * Maps mapping property types to GraphQL property types.
  *
  * @param {IGraphQLObjectTypes} objectTypes - Dictionary of object types
- * @param {IMappingPropertyType} propertyType - Mapping property type
+ * @param {MappingPropertyType} propertyType - Mapping property type
  * @returns {GraphQLOutputType} GraphQL property type
  */
-function propertyTypeLookup(objectTypes: IGraphQLObjectTypes, propertyType: IMappingPropertyType): GraphQLOutputType {
+function propertyTypeLookup(objectTypes: IGraphQLObjectTypes, propertyType: MappingPropertyType): GraphQLOutputType {
   switch (propertyType) {
-    case IMappingPropertyType.Text:
+    case MappingPropertyType.Text:
       return GraphQLString;
-    case IMappingPropertyType.Integer:
+    case MappingPropertyType.Integer:
       return GraphQLInt;
-    case IMappingPropertyType.Float:
+    case MappingPropertyType.Float:
       return GraphQLFloat;
-    case IMappingPropertyType.Date:
+    case MappingPropertyType.Date:
       return GraphQLString;
-    case IMappingPropertyType.Boolean:
+    case MappingPropertyType.Boolean:
       return GraphQLBoolean;
     default:
       throw new Error(`Mapping property type ${propertyType} is not supported`);
@@ -100,7 +100,7 @@ function propertyTypeLookup(objectTypes: IGraphQLObjectTypes, propertyType: IMap
  *
  * @param {IGraphQLObjectTypes} objectTypes - Dictionary of object types
  * @param {string} propertyName - Property name
- * @param {IMappingPropertyType} propertyType - Mapping property type
+ * @param {MappingPropertyType} propertyType - Mapping property type
  * @param {boolean} propertyMandatory - Flag whether a property is mandatory
  * @param {boolean} propertyMultiple - Flag whether a property is multiple
  * @return {FieldConfig} GraphQL field configuration
@@ -108,7 +108,7 @@ function propertyTypeLookup(objectTypes: IGraphQLObjectTypes, propertyType: IMap
 function processScalarProperty(
   objectTypes: IGraphQLObjectTypes,
   propertyName: string,
-  propertyType: IMappingPropertyType,
+  propertyType: MappingPropertyType,
   propertyMandatory: boolean,
   propertyMultiple: boolean
 ): FieldConfig {
@@ -135,7 +135,7 @@ function processNestedProperty(
   objectTypes: IGraphQLObjectTypes,
   mappingName: string,
   propertyName: string,
-  properties: IMappingProperties,
+  properties: MappingProperties,
   propertyMandatory: boolean = false,
   propertyMultiple: boolean = false
 ): FieldConfig {
@@ -183,30 +183,30 @@ function processNestedProperty(
  * @param {IGraphQLObjectTypes} objectTypes - Dictionary of object types
  * @param {string} mappingName - Mapping name
  * @param {string} propertyName - Mapping property name
- * @param {IMappingProperty} property - Mapping property
+ * @param {MappingProperty} property - Mapping property
  * @returns {FieldConfig} GraphQL field configuration
  */
 function processProperty(
   objectTypes: IGraphQLObjectTypes,
   mappingName: string,
   propertyName: string,
-  property: IMappingProperty
+  property: MappingProperty
 ): FieldConfig {
   // TODO mandatory and multiple properties
   switch (property.type) {
-    case IMappingPropertyType.Nested:
+    case MappingPropertyType.Nested:
       return processNestedProperty(
         objectTypes,
         mappingName,
         propertyName,
-        (property as IMappingNestedProperty).properties,
+        (property as MappingNestedProperty).properties,
         property.mandatory,
         property.multiple
       );
-    // case IMappingPropertyType.Node:
+    // case MappingPropertyType.Node:
     //   return processNodeProperty(
     //     objectTypes,
-    //     (property as IMappingNodeProperty).mapping,
+    //     (property as MappingNodeProperty).mapping,
     //     property.mandatory,
     //     property.multiple
     //   );
@@ -220,13 +220,13 @@ function processProperty(
  *
  * @param {IGraphQLObjectTypes} objectTypes - Dictionary of object types
  * @param {string} mappingName - Mapping name
- * @param {IMappingProperties} properties - Mapping properties
+ * @param {MappingProperties} properties - Mapping properties
  * @returns {FieldsConfig} GraphQL fields configuration
  */
 function processProperties(
   objectTypes: IGraphQLObjectTypes,
   mappingName: string,
-  properties: IMappingProperties,
+  properties: MappingProperties,
   isTopLevel: boolean
 ): () => FieldsConfig {
   return () => {
@@ -252,10 +252,10 @@ function processProperties(
  * Process a mapping as a GraphQL field.
  *
  * @param {IGraphQLObjectTypes} objectTypes - Dictionary of object types
- * @param {IMapping} mapping - Mapping
+ * @param {Mapping} mapping - Mapping
  * @return {FieldConfig} GraphQL field configuration
  */
-function processMapping(objectTypes: IGraphQLObjectTypes, mapping: IMapping): FieldConfig {
+function processMapping(objectTypes: IGraphQLObjectTypes, mapping: Mapping): FieldConfig {
   // process mapping properties as GraphQL fields
   const fields = processProperties(objectTypes, mapping.name, mapping.properties, true);
 
@@ -284,10 +284,10 @@ function processMapping(objectTypes: IGraphQLObjectTypes, mapping: IMapping): Fi
 /**
  * Process list of mappings as GraphQL fields.
  *
- * @param {IMappings} mappings - Mappings dictionary
+ * @param {Mappings} mappings - Mappings dictionary
  * @returns {FieldsConfig} GraphQL fields config
  */
-function processMappings(mappings: IMappings): IProcessContext {
+function processMappings(mappings: Mappings): IProcessContext {
   const objectTypes: IGraphQLObjectTypes = {};
   const rootObjectTypes: GraphQLObjectType[] = Array<GraphQLObjectType>();
 
@@ -398,7 +398,7 @@ function generateGraphqlSchema(context: IProcessContext): GraphQLSchema {
  *
  * @returns {Promise<GraphQLSchema>} GraphQL schema
  */
-function mappingsToGraphql(mappings: IMappings): Promise<GraphQLSchema> {
+function mappingsToGraphql(mappings: Mappings): Promise<GraphQLSchema> {
   return Promise.resolve(mappings)
     .then(processMappings)
     .then(generateQueryType)

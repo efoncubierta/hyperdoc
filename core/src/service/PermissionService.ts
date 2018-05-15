@@ -1,4 +1,4 @@
-import { IExecutionContext } from "../model/IExecutionContext";
+import { ExecutionContext } from "../model/ExecutionContext";
 
 const PERMISSIONS = [
   {
@@ -9,7 +9,7 @@ const PERMISSIONS = [
 ];
 
 export default class PermissionService {
-  public static hasPermission(context: IExecutionContext, resource: string, action: string) {
+  public static hasPermission(context: ExecutionContext, resource: string, action: string) {
     // TODO throw a permission exception if the user is not allowed
   }
 }

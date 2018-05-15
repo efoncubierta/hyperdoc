@@ -2,11 +2,11 @@ import { APIGatewayEvent, Callback, Context, Handler } from "aws-lambda";
 
 import { graphqlLambda } from "apollo-server-lambda";
 import getGraphqlSchema from "../../graphql/schema";
-import { IExecutionContext } from "hyperdoc-core/dist/model/IExecutionContext";
+import { ExecutionContext } from "hyperdoc-core/dist/model/ExecutionContext";
 import NodeDynamoDBStore from "hyperdoc-core/dist/store/aws/NodeDynamoDBStore";
 import MappingDynamoDBStore from "hyperdoc-core/dist/store/aws/MappingDynamoDBStore";
 
-const executionContext: IExecutionContext = {
+const executionContext: ExecutionContext = {
   auth: {
     userUuid: "1234"
   },

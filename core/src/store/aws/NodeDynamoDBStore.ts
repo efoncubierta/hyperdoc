@@ -1,18 +1,18 @@
 import { DynamoDB } from "aws-sdk";
-import { INode } from "../../model/INode";
-import INodeStore from "../INodeStore";
+import { Node } from "../../model/Node";
+import NodeStore from "../NodeStore";
 
 /**
  * Manage node data in a DynamoDB table.
  */
-export default class NodeDynamoDBStore implements INodeStore {
+export default class NodeDynamoDBStore implements NodeStore {
   private readonly tableName: string;
 
   constructor(tableName: string) {
     this.tableName = tableName;
   }
 
-  public get(uuid: string): Promise<INode> {
+  public get(uuid: string): Promise<Node> {
     const documentClient = new DynamoDB.DocumentClient();
 
     return new Promise((resolve, reject) => {
@@ -27,14 +27,14 @@ export default class NodeDynamoDBStore implements INodeStore {
           if (error) {
             reject(error);
           } else {
-            resolve(result.Item as INode);
+            resolve(result.Item as Node);
           }
         }
       );
     });
   }
 
-  public save(node: INode): Promise<INode> {
+  public save(node: Node): Promise<Node> {
     const documentClient = new DynamoDB.DocumentClient();
 
     return new Promise((resolve, reject) => {

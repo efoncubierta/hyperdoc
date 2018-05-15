@@ -1,10 +1,10 @@
 import {
-  IMapping,
-  IMappingProperty,
-  IMappingPropertyType,
-  IMappingNestedProperty,
-  IMappingProperties
-} from "../model/IMapping";
+  Mapping,
+  MappingProperty,
+  MappingPropertyType,
+  MappingNestedProperty,
+  MappingProperties
+} from "../model/Mapping";
 import { Schema } from "jsonschema";
 import { NodePropertiesSchema } from "./schemas/Node";
 
@@ -20,7 +20,7 @@ export default class MappingSchemaGenerator {
    * @param mapping - Mapping
    * @returns {Schema} JSON schema represting the mappings as node properties.
    */
-  public static toNodePropertiesSchema(mapping: IMapping): Schema {
+  public static toNodePropertiesSchema(mapping: Mapping): Schema {
     const { properties, required } = this.processMappingProperties(mapping.properties);
 
     return {
@@ -34,26 +34,26 @@ export default class MappingSchemaGenerator {
   /**
    * Process a scalar mapping property as a JSON schema.
    *
-   * @param {IMappingProperty} property - Mapping property
+   * @param {MappingProperty} property - Mapping property
    * @returns {Schema} JSON schema for the scalar mapping property
    */
-  private static processMappingScalarProperty(property: IMappingProperty): Schema {
+  private static processMappingScalarProperty(property: MappingProperty): Schema {
     switch (property.type) {
-      case IMappingPropertyType.Boolean:
+      case MappingPropertyType.Boolean:
         return {
           type: "boolean"
         };
-      case IMappingPropertyType.Date:
+      case MappingPropertyType.Date:
         return {
           type: "string",
           format: "date-time"
         };
-      case IMappingPropertyType.Text:
+      case MappingPropertyType.Text:
         return {
           type: "string"
         };
-      case IMappingPropertyType.Integer:
-      case IMappingPropertyType.Float:
+      case MappingPropertyType.Integer:
+      case MappingPropertyType.Float:
         return {
           type: "number"
         };
@@ -65,10 +65,10 @@ export default class MappingSchemaGenerator {
   /**
    * Process a nested mapping property as a JSON schema.
    *
-   * @param {IMappingNestedProperty} property - Mapping property
+   * @param {MappingNestedProperty} property - Mapping property
    * @returns {Schema} JSON schema representation for the nested mapping property
    */
-  private static processMappingNestedProperty(property: IMappingNestedProperty): Schema {
+  private static processMappingNestedProperty(property: MappingNestedProperty): Schema {
     const { properties, required } = this.processMappingProperties(property.properties);
 
     return {
@@ -100,12 +100,12 @@ export default class MappingSchemaGenerator {
    * Process a mapping property as a JSON schema.
    *
    * @param {string} propertyName - Mapping property name
-   * @param {IMappingProperty} property - Mapping property
+   * @param {MappingProperty} property - Mapping property
    * @returns {Schema} JSON schema representation of the mapping property
    */
-  private static processMappingProperty(propertyName: string, property: IMappingProperty): Schema {
+  private static processMappingProperty(propertyName: string, property: MappingProperty): Schema {
     switch (property.type) {
-      case IMappingPropertyType.Nested:
+      case MappingPropertyType.Nested:
         return this.wrapPropertySchema(this.processMappingNestedProperty(property), property.multiple);
       default:
         return this.wrapPropertySchema(this.processMappingScalarProperty(property), property.multiple);
@@ -115,10 +115,10 @@ export default class MappingSchemaGenerator {
   /**
    * Process a dictionary of mapping properties.
    *
-   * @param {IMappingProperties} properties - Mapping properties dictionary
+   * @param {MappingProperties} properties - Mapping properties dictionary
    * @returns {IPropertiesOutput} JSON schema representation of the mapping properties and list of required properties
    */
-  private static processMappingProperties(properties: IMappingProperties): IPropertiesOutput {
+  private static processMappingProperties(properties: MappingProperties): IPropertiesOutput {
     const schemaProperties = {};
     const requiredProperties = [];
 

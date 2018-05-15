@@ -1,7 +1,7 @@
 import { Schema, Validator } from "jsonschema";
 import { AuditSchema } from "./schemas/Audit";
 import { NodePropertySchema, NodePropertiesSchema } from "./schemas/Node";
-import { IMapping } from "../model/IMapping";
+import { Mapping } from "../model/Mapping";
 import MappingSchemaGenerator from "./MappingSchemaGenerator";
 
 /**
@@ -36,10 +36,10 @@ export default class NodeValidator {
   /**
    * Get node validator based on the Node JSON schema plus custom mapping schema.
    *
-   * @param {IMapping} mapping - Mapping
+   * @param {Mapping} mapping - Mapping
    * @returns {Validator} JSON schema validator
    */
-  public static getValidatorFromMapping(mapping?: IMapping): Validator {
+  public static getValidatorFromMapping(mapping?: Mapping): Validator {
     return this.getNodeValidator(MappingSchemaGenerator.toNodePropertiesSchema(mapping));
   }
 }

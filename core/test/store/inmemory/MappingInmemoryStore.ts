@@ -1,22 +1,22 @@
 import * as _ from "underscore";
-import { IMapping, IMappings } from "../../../src/model/IMapping";
-import IMappingStore from "../../../src/store/IMappingStore";
+import { Mapping, Mappings } from "../../../src/model/Mapping";
+import MappingStore from "../../../src/store/MappingStore";
 
 /**
  * Manage mapping data in memory.
  */
-export default class MappingInmemoryStore implements IMappingStore {
-  private mappings: IMapping[] = [];
+export default class MappingInmemoryStore implements MappingStore {
+  private mappings: Mapping[] = [];
 
-  public list(): Promise<IMappings> {
-    const mappingsDic: IMappings = {};
+  public list(): Promise<Mappings> {
+    const mappingsDic: Mappings = {};
     this.mappings.forEach((mapping) => {
       mappingsDic[mapping.name] = mapping;
     });
     return Promise.resolve(mappingsDic);
   }
 
-  public get(uuid: string): Promise<IMapping> {
+  public get(uuid: string): Promise<Mapping> {
     const mapping = _.find(this.mappings, (i) => {
       return i.uuid === uuid;
     });
@@ -24,7 +24,7 @@ export default class MappingInmemoryStore implements IMappingStore {
     return Promise.resolve(mapping);
   }
 
-  public getByName(name: string): Promise<IMapping> {
+  public getByName(name: string): Promise<Mapping> {
     const mapping = _.find(this.mappings, (i) => {
       return i.name === name;
     });
@@ -32,7 +32,7 @@ export default class MappingInmemoryStore implements IMappingStore {
     return Promise.resolve(mapping);
   }
 
-  public save(mapping: IMapping): Promise<IMapping> {
+  public save(mapping: Mapping): Promise<Mapping> {
     // remove existing mapping with same UUID
     this.mappings = _.filter(this.mappings, (i) => {
       return i.uuid !== mapping.uuid;

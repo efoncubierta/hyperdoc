@@ -1,12 +1,12 @@
-import { INodeProperties, INodePropertyType } from "../model/INode";
+import { NodeProperties, NodePropertyType } from "../model/Node";
 import {
-  IMapping,
+  Mapping,
   MappingBuilder,
-  IMappingProperties,
-  IMappingProperty,
-  IMappingPropertyType,
-  IMappingNestedProperty
-} from "../model/IMapping";
+  MappingProperties,
+  MappingProperty,
+  MappingPropertyType,
+  MappingNestedProperty
+} from "../model/Mapping";
 
 import * as moment from "moment";
 
@@ -18,10 +18,10 @@ export default class NodePropertiesMappingGenerator {
    * Generate a mapping out of node properties.
    *
    * @param {string} mappingName - Mapping name
-   * @param {INodeProperties} nodeProperties - Node properties
-   * @returns {IMapping} Mapping
+   * @param {NodeProperties} nodeProperties - Node properties
+   * @returns {Mapping} Mapping
    */
-  public static toMapping(mappingName: string, nodeProperties: INodeProperties): IMapping {
+  public static toMapping(mappingName: string, nodeProperties: NodeProperties): Mapping {
     return new MappingBuilder()
       .name(mappingName)
       .properties(this.processNodeProperties(nodeProperties))
@@ -32,10 +32,10 @@ export default class NodePropertiesMappingGenerator {
    * Process node properties as mapping properties.
    *
    * @param nodeProperties - Node properties
-   * @returns {IMappingProperties} Mapping properties
+   * @returns {MappingProperties} Mapping properties
    */
-  private static processNodeProperties(nodeProperties: INodeProperties): IMappingProperties {
-    const mappingProperties: IMappingProperties = {};
+  private static processNodeProperties(nodeProperties: NodeProperties): MappingProperties {
+    const mappingProperties: MappingProperties = {};
 
     Object.keys(nodeProperties).forEach((propertyName) => {
       const mappingProperty = this.processNodeProperty(nodeProperties[propertyName]);
@@ -51,10 +51,10 @@ export default class NodePropertiesMappingGenerator {
   /**
    * Process a node property as a mapping property.
    *
-   * @param {INodePropertyType} nodeProperty - Node property
-   * @returns {IMappingProperty} Mapping property
+   * @param {NodePropertyType} nodeProperty - Node property
+   * @returns {MappingProperty} Mapping property
    */
-  private static processNodeProperty(nodeProperty: INodePropertyType): IMappingProperty {
+  private static processNodeProperty(nodeProperty: NodePropertyType): MappingProperty {
     const mandatory = false;
     const multiple = Array.isArray(nodeProperty);
 
@@ -66,24 +66,24 @@ export default class NodePropertiesMappingGenerator {
       return null;
     }
 
-    let type = IMappingPropertyType.Text;
+    let type = MappingPropertyType.Text;
     if (typeof value === "number") {
       type = this.guessNumberValue(value);
     } else if (typeof value === "string") {
       type = this.guessStringValue(value);
     } else if (typeof value === "boolean") {
-      type = IMappingPropertyType.Boolean;
+      type = MappingPropertyType.Boolean;
     } else if (typeof value === "object") {
-      type = IMappingPropertyType.Nested;
+      type = MappingPropertyType.Nested;
     }
 
-    if (type === IMappingPropertyType.Nested) {
+    if (type === MappingPropertyType.Nested) {
       return {
         type,
         mandatory,
         multiple,
-        properties: this.processNodeProperties(nodeProperty as INodeProperties)
-      } as IMappingNestedProperty;
+        properties: this.processNodeProperties(nodeProperty as NodeProperties)
+      } as MappingNestedProperty;
     } else {
       return {
         type,
@@ -93,15 +93,15 @@ export default class NodePropertiesMappingGenerator {
     }
   }
 
-  private static guessStringValue(value: string): IMappingPropertyType {
-    return this.isDate(value) ? IMappingPropertyType.Date : IMappingPropertyType.Text;
+  private static guessStringValue(value: string): MappingPropertyType {
+    return this.isDate(value) ? MappingPropertyType.Date : MappingPropertyType.Text;
   }
 
-  private static guessNumberValue(value: number): IMappingPropertyType {
+  private static guessNumberValue(value: number): MappingPropertyType {
     if (Number.isInteger(value)) {
-      return IMappingPropertyType.Integer;
+      return MappingPropertyType.Integer;
     } else {
-      return IMappingPropertyType.Float;
+      return MappingPropertyType.Float;
     }
   }
 

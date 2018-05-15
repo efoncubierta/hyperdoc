@@ -29,25 +29,30 @@
   },
   "scripts": {
     "install:core": "cd core && npm install && cd ..",
+    "install:backend": "cd backend && npm install && cd ..",
     "install:api": "cd api && npm install && cd ..",
-    "install:modules": "npm run install:core && npm run install:api",
+    "install:modules": "npm run install:core && npm run install:backend && npm run install:api",
     "install:root": "npm install",
     "install:all": "npm run install:root && npm run install:modules",
     "clean:core": "cd core && npm run clean && cd ..",
     "clean:api": "cd api && npm run clean && cd ..",
-    "clean:modules": "npm run clean:core && npm run clean:api",
+    "clean:backend": "cd api && npm run clean && cd ..",
+    "clean:modules": "npm run clean:core && npm run clean:backend && npm run clean:api",
     "clean:root": "rm -rf .nyc_output coverage node_modules",
     "clean:all": "npm run clean:root && npm run clean:modules",
-    "test:unit": "./node_modules/.bin/mocha -r ts-node/register {api,core}/test/**/*.spec.ts",
-    "test": "./node_modules/.bin/nyc -e '.ts' --r html -r lcov -r text npm run test:unit",
+    "test:core": "./node_modules/.bin/mocha -r ts-node/register core/test/**/*.spec.ts",
+    "test:backend": "./node_modules/.bin/mocha -r ts-node/register backend/test/**/*.spec.ts",
+    "test:api": "./node_modules/.bin/mocha -r ts-node/register api/test/**/*.spec.ts",
+    "test:all": "./node_modules/.bin/mocha -r ts-node/register {core,backend,api}/test/**/*.spec.ts",
+    "test": "./node_modules/.bin/nyc -e '.ts' --r html -r lcov -r text npm run test:all",
     "codecov": "./node_modules/.bin/codecov"
   },
   "nyc": {
     "exclude": [
-      "{api,core}/test/**/*.ts"
+      "{core,backend,api}/test/**/*.ts"
     ],
     "include": [
-      "{api,core}/src/**/*.ts"
+      "{core,backend,api}/src/**/*.ts"
     ],
     "all": true
   }

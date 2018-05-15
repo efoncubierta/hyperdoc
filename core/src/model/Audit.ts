@@ -1,7 +1,7 @@
 /**
  * Audit details.
  */
-export interface IAudit {
+export interface Audit {
   createdAt: string;
   createdBy: string;
   modifiedAt: string;

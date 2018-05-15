@@ -1,21 +1,21 @@
 /**
  * Mapping type unique key.
  */
-export interface IMappingKey {
+export interface MappingKey {
   uuid: string;
 }
 
 /**
  * Mapping reference.
  */
-export interface IMappingRef {
-  mappingKey: IMappingKey;
+export interface MappingRef {
+  mappingKey: MappingKey;
 }
 
 /**
  * Types of properties allowed in a mapping.
  */
-export enum IMappingPropertyType {
+export enum MappingPropertyType {
   Integer = "integer",
   Text = "text",
   Float = "float",
@@ -27,40 +27,40 @@ export enum IMappingPropertyType {
 /**
  * Mapping property.
  */
-export interface IMappingProperty {
-  type: IMappingPropertyType;
+export interface MappingProperty {
+  type: MappingPropertyType;
   mandatory: boolean;
   multiple: boolean;
 }
 
-export interface IMappingNestedProperty extends IMappingProperty {
-  properties?: IMappingProperties;
+export interface MappingNestedProperty extends MappingProperty {
+  properties?: MappingProperties;
 }
 
-export interface IMappingNodeProperty extends IMappingProperty {
+export interface MappingNodeProperty extends MappingProperty {
   mapping?: string;
 }
 
 /**
  * Mapping properties.
  */
-export interface IMappingProperties {
-  [x: string]: IMappingProperty;
+export interface MappingProperties {
+  [x: string]: MappingProperty;
 }
 
 /**
  * Mapping type.
  */
-export interface IMapping extends IMappingKey {
+export interface Mapping extends MappingKey {
   name: string;
-  properties: IMappingProperties;
+  properties: MappingProperties;
 }
 
 /**
  * Mappings directionary.
  */
-export interface IMappings {
-  [x: string]: IMapping;
+export interface Mappings {
+  [x: string]: Mapping;
 }
 
 /**
@@ -69,10 +69,10 @@ export interface IMappings {
  * NOTE: this builder is not great. It comes with many problems.
  */
 export class MappingBuilder {
-  private n: IMapping;
+  private n: Mapping;
 
-  constructor(mapping?: IMapping) {
-    this.n = mapping ? mapping : ({} as IMapping);
+  constructor(mapping?: Mapping) {
+    this.n = mapping ? mapping : ({} as Mapping);
   }
 
   public uuid(uuid: string): MappingBuilder {
@@ -85,12 +85,12 @@ export class MappingBuilder {
     return this;
   }
 
-  public properties(properties: IMappingProperties): MappingBuilder {
+  public properties(properties: MappingProperties): MappingBuilder {
     this.n.properties = properties;
     return this;
   }
 
-  public build(): IMapping {
+  public build(): Mapping {
     return this.n;
   }
 }

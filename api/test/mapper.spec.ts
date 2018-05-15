@@ -5,44 +5,44 @@ import "mocha";
 
 import { GraphQLObjectType } from "graphql";
 
-import { IMappings, IMappingPropertyType } from "../../core/dist/model/IMapping";
+import { Mappings, MappingPropertyType } from "../../core/dist/model/Mapping";
 import mappingsToGraphql from "../src/graphql/mapper";
 
-const MAPPINGS: IMappings = {
+const MAPPINGS: Mappings = {
   Type1: {
     uuid: UUID.v1(),
     name: "Type1",
     properties: {
       // type2: {
-      //   type: IMappingPropertyType.Node,
+      //   type: MappingPropertyType.Node,
       //   mandatory: true,
       //   multiple: false,
       //   mapping: "Type2"
       // },
       name: {
-        type: IMappingPropertyType.Text,
+        type: MappingPropertyType.Text,
         mandatory: true,
         multiple: false
       },
       dates: {
-        type: IMappingPropertyType.Nested,
+        type: MappingPropertyType.Nested,
         mandatory: true,
         multiple: false,
         properties: {
           from: {
-            type: IMappingPropertyType.Date,
+            type: MappingPropertyType.Date,
             mandatory: true,
             multiple: false
           },
           to: {
-            type: IMappingPropertyType.Date,
+            type: MappingPropertyType.Date,
             mandatory: false,
             multiple: false
           }
         }
       },
       tags: {
-        type: IMappingPropertyType.Text,
+        type: MappingPropertyType.Text,
         mandatory: false,
         multiple: true
       }
@@ -53,13 +53,13 @@ const MAPPINGS: IMappings = {
     name: "Type2",
     properties: {
       name: {
-        type: IMappingPropertyType.Text,
+        type: MappingPropertyType.Text,
         mandatory: true,
         multiple: false
       }
     }
   }
-} as IMappings;
+} as Mappings;
 
 describe("REST API :: GraphQL :: Schema", () => {
   it("should maps the mappings to GraphQL schema", (done) => {

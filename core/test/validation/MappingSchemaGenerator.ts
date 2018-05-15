@@ -5,7 +5,7 @@ import "mocha";
 import TestDataGenerator from "../util/TestDataGenerator";
 import MappingSchemaGenerator from "../../src/validation/MappingSchemaGenerator";
 import { Schema } from "jsonschema";
-import { IMapping, IMappingProperties, IMappingPropertyType, IMappingNestedProperty } from "../../src/model/IMapping";
+import { Mapping, MappingProperties, MappingPropertyType, MappingNestedProperty } from "../../src/model/Mapping";
 
 function expectType(property: Schema, type: string, multiple: boolean) {
   if (multiple) {
@@ -18,7 +18,7 @@ function expectType(property: Schema, type: string, multiple: boolean) {
   }
 }
 
-function validateSchema(mappingProperties: IMappingProperties, schema: Schema) {
+function validateSchema(mappingProperties: MappingProperties, schema: Schema) {
   Object.keys(mappingProperties).forEach((propertyName) => {
     const schemaProperty = schema.properties[propertyName];
     const mappingProperty = mappingProperties[propertyName];
@@ -26,20 +26,20 @@ function validateSchema(mappingProperties: IMappingProperties, schema: Schema) {
     const multiple = mappingProperty.multiple;
 
     switch (mappingPropertyType) {
-      case IMappingPropertyType.Boolean:
+      case MappingPropertyType.Boolean:
         expectType(schemaProperty, "boolean", multiple);
         break;
-      case IMappingPropertyType.Date:
-      case IMappingPropertyType.Text:
+      case MappingPropertyType.Date:
+      case MappingPropertyType.Text:
         expectType(schemaProperty, "string", multiple);
         break;
-      case IMappingPropertyType.Float:
-      case IMappingPropertyType.Integer:
+      case MappingPropertyType.Float:
+      case MappingPropertyType.Integer:
         expectType(schemaProperty, "number", multiple);
         break;
-      case IMappingPropertyType.Nested:
+      case MappingPropertyType.Nested:
         expectType(schemaProperty, "object", multiple);
-        validateSchema((mappingProperty as IMappingNestedProperty).properties, schemaProperty);
+        validateSchema((mappingProperty as MappingNestedProperty).properties, schemaProperty);
         break;
     }
   });
