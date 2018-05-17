@@ -2,10 +2,14 @@
 import { expect } from "chai";
 import "mocha";
 
-import TestDataGenerator from "../util/TestDataGenerator";
-import NodePropertiesMappingGenerator from "../../src/validation/NodePropertiesMappingGenerator";
-import { MappingProperties, MappingPropertyType, MappingProperty } from "../../src/model/Mapping";
-import { NodeProperties } from "../../src/model/Node";
+import { TestDataGenerator } from "../util/TestDataGenerator";
+import {
+  MappingProperties,
+  MappingPropertyType,
+  MappingProperty,
+  NodeProperties,
+  NodePropertiesMappingGenerator
+} from "../../src";
 
 function validateMappingProperty(nodeProperty: any, mappingProperty: MappingProperty) {
   if (Array.isArray(nodeProperty)) {

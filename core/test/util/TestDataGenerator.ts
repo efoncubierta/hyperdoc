@@ -1,21 +1,18 @@
 import * as faker from "faker";
 
-import NodeValidator from "../../src/validation/NodeValidator";
-import { Node, NodeProperties, NodeBuilder, NodePropertyType } from "../../src/model/Node";
-import { Audit } from "../../src/model/Audit";
 import {
   Mapping,
+  MappingProperties,
   MappingPropertyType,
   MappingNestedProperty,
-  MappingNodeProperty,
-  MappingProperties,
-  MappingProperty
-} from "../../src/model/Mapping";
-import { ExecutionContext, AuthenticationContext } from "../../src/model/ExecutionContext";
-import NodeInmemoryStore from "../store/inmemory/NodeInmemoryStore";
-import MappingInmemoryStore from "../store/inmemory/MappingInmemoryStore";
+  MappingProperty,
+  Node,
+  NodeBuilder,
+  NodeProperties,
+  Audit
+} from "../../src";
 
-export default class TestDataGenerator {
+export class TestDataGenerator {
   public static fullMapping(): Mapping {
     return {
       uuid: faker.random.uuid(),
@@ -255,19 +252,19 @@ export default class TestDataGenerator {
     return faker.random.uuid();
   }
 
-  public static randomAuthenticationContext(): AuthenticationContext {
-    return {
-      userUuid: TestDataGenerator.randomUUID()
-    };
-  }
+  // public static randomAuthenticationContext(): AuthenticationContext {
+  //   return {
+  //     userUuid: TestDataGenerator.randomUUID()
+  //   };
+  // }
 
-  public static randomExecutionContext(): ExecutionContext {
-    return {
-      auth: this.randomAuthenticationContext(),
-      stores: {
-        nodes: new NodeInmemoryStore(),
-        mappings: new MappingInmemoryStore()
-      }
-    };
-  }
+  // public static randomExecutionContext(): ExecutionContext {
+  //   return {
+  //     auth: this.randomAuthenticationContext(),
+  //     stores: {
+  //       nodes: new NodeInmemoryStore(),
+  //       mappings: new MappingInmemoryStore()
+  //     }
+  //   };
+  // }
 }

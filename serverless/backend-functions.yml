@@ -1,2 +1,0 @@
-node_save:
-  handler: backend/src/lambda/node/create.handler

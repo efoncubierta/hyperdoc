@@ -1,5 +1,4 @@
-import { Audit } from "./Audit";
-import { MappingRef, MappingKey } from "./Mapping";
+import { Audit } from ".";
 
 /**
  * Node unique key.
@@ -29,8 +28,7 @@ export interface NodeProperties {
 /**
  * Array of node properties.
  */
-export interface NodePropertiesArray
-  extends Array<string | number | boolean> {}
+export interface NodePropertiesArray extends Array<string | number | boolean> {}
 
 /**
  * Node.

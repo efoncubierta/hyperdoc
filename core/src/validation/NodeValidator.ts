@@ -1,13 +1,10 @@
 import { Schema, Validator } from "jsonschema";
-import { AuditSchema } from "./schemas/Audit";
-import { NodePropertySchema, NodePropertiesSchema } from "./schemas/Node";
-import { Mapping } from "../model/Mapping";
-import MappingSchemaGenerator from "./MappingSchemaGenerator";
+import { Mapping, AuditSchema, NodePropertySchema, NodePropertiesSchema, MappingSchemaGenerator } from "..";
 
 /**
  * Node validator.
  */
-export default class NodeValidator {
+export class NodeValidator {
   /**
    * Get a node validator based on a custom node properties schema.
    *

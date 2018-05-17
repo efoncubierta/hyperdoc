@@ -3,17 +3,17 @@ import {
   MappingProperty,
   MappingPropertyType,
   MappingNestedProperty,
-  MappingProperties
-} from "../model/Mapping";
+  MappingProperties,
+  NodePropertiesSchema
+} from "..";
 import { Schema } from "jsonschema";
-import { NodePropertiesSchema } from "./schemas/Node";
 
 interface IPropertiesOutput {
   properties: {};
   required: string[];
 }
 
-export default class MappingSchemaGenerator {
+export class MappingSchemaGenerator {
   /**
    * Generate a JSON schema for node properties out of a mapping.
    *

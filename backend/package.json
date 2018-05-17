@@ -1,7 +1,7 @@
 {
-  "name": "hyperdoc-functions",
+  "name": "hyperdoc-backend",
   "version": "0.0.1",
-  "description": "Hyperdoc :: Lambda Functions",
+  "description": "Hyperdoc :: Backend",
   "author": "Ezequiel Foncubierta <ezequiel.foncubierta@gmail.com>",
   "private": true,
   "repository": {
@@ -13,14 +13,18 @@
   },
   "homepage": "https://hyperdoc.io",
   "license": "Apache-2.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "dependencies": {
-    "hyperdoc-core": "file:../core"
+    "hyperdoc-core": "file:../core",
+    "hyperdoc-eventstore": "file:../eventstore"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.3",
     "@types/chai": "^4.1.3",
     "@types/mocha": "^5.2.0",
     "@types/node": "^8.10.13",
+    "aws-sdk-mock": "^2.0.0",
     "chai": "^4.1.2",
     "mocha": "^5.1.1",
     "ts-node": "^6.0.3",
@@ -28,7 +32,9 @@
     "typescript": "^2.5.2"
   },
   "scripts": {
+    "prepare": "npm run build",
+    "build": "./node_modules/.bin/tsc",
     "test": "./node_modules/.bin/mocha -r ts-node/register test/**/*.spec.ts",
-    "clean": "rm -rf .serverless .webpack node_modules"
+    "clean": "rm -rf dist node_modules"
   }
 }

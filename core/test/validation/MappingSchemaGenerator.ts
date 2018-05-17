@@ -2,10 +2,15 @@
 import { expect } from "chai";
 import "mocha";
 
-import TestDataGenerator from "../util/TestDataGenerator";
-import MappingSchemaGenerator from "../../src/validation/MappingSchemaGenerator";
+import { TestDataGenerator } from "../util/TestDataGenerator";
 import { Schema } from "jsonschema";
-import { Mapping, MappingProperties, MappingPropertyType, MappingNestedProperty } from "../../src/model/Mapping";
+import {
+  Mapping,
+  MappingProperties,
+  MappingPropertyType,
+  MappingNestedProperty,
+  MappingSchemaGenerator
+} from "../../src";
 
 function expectType(property: Schema, type: string, multiple: boolean) {
   if (multiple) {

@@ -2,9 +2,8 @@
 import { expect } from "chai";
 import "mocha";
 
-import { NodeSchema } from "../../src/validation/schemas/Node";
-import NodeValidator from "../../src/validation/NodeValidator";
-import TestDataGenerator from "../util/TestDataGenerator";
+import { NodeSchema, NodeValidator } from "../../src";
+import { TestDataGenerator } from "../util/TestDataGenerator";
 
 function nodeValidatorTest() {
   describe("NodeValidator", () => {

@@ -5,7 +5,7 @@ import nodeValidatorTest from "./NodeValidator";
 import mappingSchemaGeneratorTest from "./MappingSchemaGenerator";
 import nodePropertiesMappingGeneratorTest from "./NodePropertiesMappingGenerator";
 
-describe("Validation", () => {
+describe("Core :: Validation", () => {
   nodeValidatorTest();
   mappingSchemaGeneratorTest();
   nodePropertiesMappingGeneratorTest();

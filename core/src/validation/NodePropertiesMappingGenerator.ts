@@ -1,19 +1,19 @@
-import { NodeProperties, NodePropertyType } from "../model/Node";
+import * as moment from "moment";
 import {
+  NodeProperties,
   Mapping,
   MappingBuilder,
   MappingProperties,
+  NodePropertyType,
   MappingProperty,
   MappingPropertyType,
   MappingNestedProperty
-} from "../model/Mapping";
-
-import * as moment from "moment";
+} from "..";
 
 /**
  * Node to mapping generator.
  */
-export default class NodePropertiesMappingGenerator {
+export class NodePropertiesMappingGenerator {
   /**
    * Generate a mapping out of node properties.
    *
