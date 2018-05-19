@@ -17,7 +17,8 @@
     "apollo-server-lambda": "^1.3.6",
     "graphql": "^0.13.2",
     "graphql-tools": "^3.0.1",
-    "hyperdoc-backend": "file:../backend"
+    "hyperdoc-backend": "file:../backend",
+    "hyperdoc-core": "file:../core"
   },
   "devDependencies": {
     "@types/graphql": "^0.13.0",

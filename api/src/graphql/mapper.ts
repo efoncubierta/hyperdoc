@@ -12,7 +12,7 @@ import {
   GraphQLList
 } from "graphql";
 import { GraphQLOutputType, GraphQLUnionType } from "graphql/type";
-import { NodeService } from "hyperdoc-backend";
+import { NodeService, ExecutionContext } from "hyperdoc-backend";
 
 import {
   MappingPropertyType,
@@ -22,8 +22,7 @@ import {
   MappingNestedProperty,
   MappingNodeProperty,
   Mappings
-} from "hyperdoc-core/dist/model/Mapping";
-import { ExecutionContext } from "hyperdoc-core/dist/model/ExecutionContext";
+} from "hyperdoc-core";
 
 // GraphQL fields definition for typing
 type FieldConfig = GraphQLFieldConfig<any, any>;

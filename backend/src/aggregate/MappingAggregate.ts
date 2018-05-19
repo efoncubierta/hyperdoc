@@ -26,8 +26,7 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
    * @param config - Aggregate configuration
    */
   constructor(uuid: string, config: AggregateConfig) {
-    super(config);
-    this.uuid = uuid;
+    super(uuid, config);
   }
 
   /**
@@ -49,13 +48,6 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
       default:
         return Promise.reject(`Command ${command.$command} not supported by MappingAggregate.`);
     }
-  }
-
-  /**
-   * Get aggregate unique ID.
-   */
-  protected aggregateId(): string {
-    return this.uuid;
   }
 
   /**
@@ -90,12 +82,14 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
   private handleCreateMapping(command: CreateMapping): Promise<MappingState> {
     switch (this.state.$state) {
       case New.NAME:
-        return this.save(new MappingCreatedV1(this.aggregateId(), command.name, command.properties)).then((event) => {
+        return this.save(
+          new MappingCreatedV1(this.aggregateId, this.getNextSequence(), command.name, command.properties)
+        ).then((event) => {
           this.aggregateEvent(event);
           return this.currentState();
         });
       default:
-        return Promise.reject(`Mapping ${this.aggregateId()} already exists.`);
+        return Promise.reject(`Mapping ${this.aggregateId} already exists.`);
     }
   }
 
@@ -114,13 +108,15 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
   private handleSetMappingProperties(command: SetMappingProperties): Promise<MappingState> {
     switch (this.state.$state) {
       case Active.NAME:
-        return this.save(new MappingPropertiesUpdatedV1(this.aggregateId(), command.properties)).then((event) => {
+        return this.save(
+          new MappingPropertiesUpdatedV1(this.aggregateId, this.getNextSequence(), command.properties)
+        ).then((event) => {
           this.aggregateEvent(event);
           return this.currentState();
         });
       default:
         return Promise.reject(
-          `Cannot set properties on mapping ${this.aggregateId()}. It doesn't exist or it's been deleted.`
+          `Cannot set properties on mapping ${this.aggregateId}. It doesn't exist or it's been deleted.`
         );
     }
   }
@@ -141,7 +137,7 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
   private handleDeleteMapping(command: DeleteMapping): Promise<MappingState> {
     switch (this.state.$state) {
       case Active.NAME:
-        return this.save(new MappingDeletedV1(this.aggregateId())).then((event) => {
+        return this.save(new MappingDeletedV1(this.aggregateId, this.getNextSequence())).then((event) => {
           this.aggregateEvent(event);
           return this.currentState();
         });
@@ -151,14 +147,14 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
   }
 
   /**
-   * Aggregate {@link Snapshot<MappingState>} to the current state.
+   * Aggregate {@link Snapshot} to the current state.
    *
    * Actions:
    * - Replace current state with snapshotted state
    *
    * @param snapshot Mapping state snapshot
    */
-  protected aggregateSnapshot(snapshot: Snapshot<MappingState>) {
+  protected aggregateSnapshot(snapshot: Snapshot) {
     this.state = snapshot.state;
   }
 
@@ -194,7 +190,7 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
    */
   private aggregateMappingCreatedV1(event: MappingCreatedV1) {
     const mapping = new MappingBuilder()
-      .uuid(event.aggregateId)
+      .uuid(event.$aggregateId)
       .name(event.name)
       .properties(event.properties)
       .build();

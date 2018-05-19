@@ -1,7 +1,6 @@
 import mappingsToGraphql from "./mapper";
-import { MappingService } from "hyperdoc-core";
 import { GraphQLSchema } from "graphql";
-import { ExecutionContext } from "hyperdoc-core/dist/model/ExecutionContext";
+import { ExecutionContext, MappingService } from "hyperdoc-backend";
 
 /**
  * Get a GraphQL schema from mapping service.

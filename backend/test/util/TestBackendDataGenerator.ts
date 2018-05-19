@@ -4,6 +4,10 @@ import { AuthenticationContext, ExecutionContext } from "../../src/service/Execu
 import { TestDataGenerator } from "../../../core/test/util/TestDataGenerator";
 import { AggregateConfig } from "hyperdoc-eventstore";
 
+// cross reference to hyperdoc-eventstore module
+import { JournalInMemoryStore } from "../../../eventstore/test/store/inmemory/JournalInMemoryStore";
+import { SnapshotInMemoryStore } from "../../../eventstore/test/store/inmemory/SnapshotInMemoryStore";
+
 export class TestBackendDataGenerator extends TestDataGenerator {
   public static randomAuthenticationContext(): AuthenticationContext {
     return {
@@ -15,7 +19,15 @@ export class TestBackendDataGenerator extends TestDataGenerator {
     return {
       auth: this.randomAuthenticationContext(),
       aggregate: {
-        config: {} as AggregateConfig
+        config: {
+          snapshot: {
+            interval: 10
+          },
+          stores: {
+            journal: new JournalInMemoryStore(),
+            snapshot: new SnapshotInMemoryStore()
+          }
+        }
       }
     };
   }
