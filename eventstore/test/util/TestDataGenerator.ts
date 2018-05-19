@@ -7,7 +7,10 @@ import { DeleteEntity } from "../sample/DeleteEntity";
 import { EntityCreated } from "../sample/EntityCreated";
 import { EntityUpdated } from "../sample/EntityUpdated";
 import { EntityDeleted } from "../sample/EntityDeleted";
-import { Command } from "../../src";
+import { Command, AggregateConfig } from "../../src";
+
+import { SnapshotInMemoryStore } from "../store/inmemory/SnapshotInmemoryStore";
+import { JournalInMemoryStore } from "../store/inmemory/JournalInmemoryStore";
 
 export class TestDataGenerator {
   public static randomGetEntity(): GetEntity {
@@ -71,5 +74,20 @@ export class TestDataGenerator {
 
   public static randomUUID(): string {
     return faker.random.uuid();
+  }
+
+  public static getAggregateConfig(): AggregateConfig {
+    const journalStore = new JournalInMemoryStore();
+    const snapshotStore = new SnapshotInMemoryStore();
+
+    return {
+      snapshot: {
+        interval: 10
+      },
+      stores: {
+        journal: journalStore,
+        snapshot: snapshotStore
+      }
+    };
   }
 }

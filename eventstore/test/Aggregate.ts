@@ -3,26 +3,13 @@ import * as UUID from "uuid";
 import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 import "mocha";
-import { AggregateConfig, New, Active, Deleted, AggregateError } from "../src";
-import { SnapshotInMemoryStore } from "./store/inmemory/SnapshotInmemoryStore";
-import { JournalInMemoryStore } from "./store/inmemory/JournalInmemoryStore";
+import { New, Active, Deleted, AggregateError } from "../src";
 
 import { TestDataGenerator } from "./util/TestDataGenerator";
 import { EntityAggregate } from "./sample/UserAggregate";
 import { Entity } from "./sample/Entity";
 
-const journalStore = new JournalInMemoryStore();
-const snapshotStore = new SnapshotInMemoryStore();
-
-const aggregateConfig: AggregateConfig = {
-  snapshot: {
-    interval: 10
-  },
-  stores: {
-    journal: journalStore,
-    snapshot: snapshotStore
-  }
-};
+const aggregateConfig = TestDataGenerator.getAggregateConfig();
 
 function aggregateTest() {
   describe("UserAggregate", () => {
