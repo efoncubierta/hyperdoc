@@ -4,15 +4,11 @@ import { MappingProperties } from "hyperdoc-core";
 export class MappingPropertiesUpdatedV1 extends Event {
   public static readonly NAME = "MappingPropertiesUpdated";
 
-  // metadata
-  public readonly $event: string = MappingPropertiesUpdatedV1.NAME;
-  public readonly $version: string = "1";
-
   // data
   public readonly properties: MappingProperties;
 
-  constructor(aggregateId: string, properties: MappingProperties) {
-    super(aggregateId);
+  constructor(aggregateId: string, sequence: number, properties: MappingProperties) {
+    super(MappingPropertiesUpdatedV1.NAME, aggregateId, sequence);
     this.properties = properties;
   }
 }

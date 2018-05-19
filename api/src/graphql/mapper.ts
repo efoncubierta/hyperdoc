@@ -12,7 +12,7 @@ import {
   GraphQLList
 } from "graphql";
 import { GraphQLOutputType, GraphQLUnionType } from "graphql/type";
-import { NodeService } from "hyperdoc-core";
+import { NodeService } from "hyperdoc-backend";
 
 import {
   MappingPropertyType,

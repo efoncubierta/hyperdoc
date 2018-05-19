@@ -1,15 +1,20 @@
 import { Message } from "./Message";
 import { State } from "../state/State";
 
-export class Snapshot<S extends State<any>> extends Message {
+export class Snapshot extends Message {
   public static readonly MESSAGE_TYPE = "Snapshot";
 
-  public readonly $message: string = Snapshot.MESSAGE_TYPE;
+  // metadata
+  public readonly $aggregateId: string;
+  public readonly $sequence: number;
 
-  public readonly state: S;
+  // data
+  public readonly state: State<any>;
 
-  constructor(state: S) {
-    super();
+  constructor(aggregateId: string, sequence: number, state: State<any>) {
+    super(Snapshot.MESSAGE_TYPE);
+    this.$aggregateId = aggregateId;
+    this.$sequence = sequence;
     this.state = state;
   }
 }

@@ -3,7 +3,7 @@ import { Event } from "hyperdoc-eventstore";
 export class MappingDeletedV1 extends Event {
   public static readonly NAME = "MappingDeleted";
 
-  // metadata
-  public readonly $event: string = MappingDeletedV1.NAME;
-  public readonly $version: string = "1";
+  constructor(aggregateId: string, sequence: number) {
+    super(MappingDeletedV1.NAME, aggregateId, sequence);
+  }
 }

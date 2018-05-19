@@ -4,13 +4,14 @@ export abstract class Event extends Message {
   public static readonly MESSAGE_TYPE = "Event";
 
   // metadata
-  public readonly $message: string = Event.MESSAGE_TYPE;
   public readonly $event: string;
+  public readonly $aggregateId: string;
+  public readonly $sequence: number;
 
-  public readonly aggregateId: string;
-
-  constructor(aggregateId: string) {
-    super();
-    this.aggregateId = aggregateId;
+  constructor(event: string, aggregateId: string, sequence: number) {
+    super(Event.MESSAGE_TYPE);
+    this.$event = event;
+    this.$aggregateId = aggregateId;
+    this.$sequence = sequence;
   }
 }

@@ -4,15 +4,11 @@ import { NodeProperties } from "hyperdoc-core";
 export class NodePropertiesUpdatedV1 extends Event {
   public static readonly NAME = "NodePropertiesUpdated";
 
-  // metadata
-  public readonly $event: string = NodePropertiesUpdatedV1.NAME;
-  public readonly $version: string = "1";
-
   // data
   public readonly properties: NodeProperties;
 
-  constructor(aggregateId: string, properties: NodeProperties) {
-    super(aggregateId);
+  constructor(aggregateId: string, sequence: number, properties: NodeProperties) {
+    super(NodePropertiesUpdatedV1.NAME, aggregateId, sequence);
     this.properties = properties;
   }
 }

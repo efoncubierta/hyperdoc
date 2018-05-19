@@ -1,12 +1,16 @@
-export interface AggregateDBConfig {
-  tableName: string;
-}
+import { JournalStore } from "./store/JournalStore";
+import { SnapshotStore } from "./store/SnapshotStore";
 
 export interface AggregateSnapshotConfig {
   interval: number;
 }
 
+export interface AggregateStoresConfig {
+  journal: JournalStore;
+  snapshot: SnapshotStore;
+}
+
 export interface AggregateConfig {
-  db: AggregateDBConfig;
   snapshot: AggregateSnapshotConfig;
+  stores: AggregateStoresConfig;
 }

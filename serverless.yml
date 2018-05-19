@@ -12,7 +12,8 @@ provider:
   stage: dev
   region: eu-west-1
   environment:
-    EVENTS_TABLE: Events_${self:provider.stage}
+    JOURNALS_TABLE: Journals_${self:provider.stage}
+    SNAPSHOTS_TABLE: Snapshots_${self:provider.stage}
     NODES_TABLE: Nodes_${self:provider.stage}
     MAPPINGS_TABLE: Mappings_${self:provider.stage}
   iamRoleStatements:
