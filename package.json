@@ -40,7 +40,7 @@
     "clean:backend": "cd backend && npm run clean && cd ..",
     "clean:api": "cd api && npm run clean && cd ..",
     "clean:modules": "npm run clean:core && npm run clean:eventstore && npm run clean:backend &&npm run clean:api",
-    "clean:root": "rm -rf .nyc_output coverage node_modules",
+    "clean:root": "rm -rf .nyc_output .serverless coverage node_modules",
     "clean:all": "npm run clean:root && npm run clean:modules",
     "test:core": "./node_modules/.bin/mocha -r ts-node/register core/test/**/*.spec.ts",
     "test:eventstore": "./node_modules/.bin/mocha -r ts-node/register eventstore/test/**/*.spec.ts",
