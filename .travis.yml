@@ -3,6 +3,14 @@ language: node_js
 node_js:
   - "8"
 
+before_install:
+  - cd ..
+  - git clone https://github.com/efoncubierta/eventum-sdk-js.git eventum-sdk-js
+  - cd eventum-sdk-js
+  - npm install
+  - npm link
+  - cd ../hyperdoc
+
 install:
   - npm run install:all
 

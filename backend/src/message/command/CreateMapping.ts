@@ -1,4 +1,4 @@
-import { Command } from "hyperdoc-eventstore";
+import { Command } from "eventum-sdk";
 import { MappingProperties } from "hyperdoc-core";
 
 export class CreateMapping extends Command {

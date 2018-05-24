@@ -1,4 +1,4 @@
-import { Aggregate, AggregateConfig, New, Active, Deleted, Snapshot } from "hyperdoc-eventstore";
+import { AggregateConfig, New, Active, Deleted, Snapshot, AggregateFSM } from "eventum-sdk";
 import { Mapping, MappingBuilder } from "hyperdoc-core";
 import { GetMapping } from "../message/command/GetMapping";
 import { CreateMapping } from "../message/command/CreateMapping";
@@ -15,9 +15,9 @@ export type MappingState = New<Mapping> | Active<Mapping> | Deleted<Mapping>;
 /**
  * Aggregate for {@link Mapping} entities.
  */
-export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCommand, MappingEvent> {
+export class MappingAggregate extends AggregateFSM<Mapping, MappingState, MappingCommand, MappingEvent> {
   private readonly uuid: string;
-  private state: MappingState = new New();
+  private currentState: MappingState = new New();
 
   /**
    * Constructor.
@@ -25,8 +25,15 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
    * @param uuid - Mapping UUID
    * @param config - Aggregate configuration
    */
-  constructor(uuid: string, config: AggregateConfig) {
+  protected constructor(uuid: string, config: AggregateConfig) {
     super(uuid, config);
+  }
+
+  public static build(uuid: string, config: AggregateConfig): Promise<MappingAggregate> {
+    const aggregate = new MappingAggregate(uuid, config);
+    return aggregate.rehydrate().then(() => {
+      return aggregate;
+    });
   }
 
   /**
@@ -36,7 +43,7 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
    * @returns A promise with the state after running the command
    */
   public handle(command: MappingCommand): Promise<MappingState> {
-    switch (command.$command) {
+    switch (command.commandType) {
       case GetMapping.NAME:
         return this.handleGetMapping(command as GetMapping);
       case CreateMapping.NAME:
@@ -46,15 +53,15 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
       case DeleteMapping.NAME:
         return this.handleDeleteMapping(command as DeleteMapping);
       default:
-        return Promise.reject(`Command ${command.$command} not supported by MappingAggregate.`);
+        return Promise.reject(`Command ${command.commandType} not supported by MappingAggregate.`);
     }
   }
 
   /**
    * Get current state.
    */
-  protected currentState(): MappingState {
-    return this.state;
+  protected getEntity(): MappingState {
+    return this.currentState;
   }
 
   /**
@@ -64,7 +71,7 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
    * @returns A promise with the state after running the command
    */
   private handleGetMapping(command: GetMapping): Promise<MappingState> {
-    return Promise.resolve(this.currentState());
+    return Promise.resolve(this.getEntity());
   }
 
   /**
@@ -80,13 +87,15 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
    * @returns A promise with the state after running the command
    */
   private handleCreateMapping(command: CreateMapping): Promise<MappingState> {
-    switch (this.state.$state) {
-      case New.NAME:
-        return this.save(
-          new MappingCreatedV1(this.aggregateId, this.getNextSequence(), command.name, command.properties)
-        ).then((event) => {
+    switch (this.currentState.stateName) {
+      case New.STATE_NAME:
+        const event = new MappingCreatedV1(this.aggregateId, this.getNextSequence(), {
+          name: command.name,
+          properties: command.properties
+        });
+        return this.save(event).then(() => {
           this.aggregateEvent(event);
-          return this.currentState();
+          return this.getEntity();
         });
       default:
         return Promise.reject(`Mapping ${this.aggregateId} already exists.`);
@@ -106,13 +115,14 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
    * @returns A promise with the state after running the command
    */
   private handleSetMappingProperties(command: SetMappingProperties): Promise<MappingState> {
-    switch (this.state.$state) {
-      case Active.NAME:
-        return this.save(
-          new MappingPropertiesUpdatedV1(this.aggregateId, this.getNextSequence(), command.properties)
-        ).then((event) => {
+    switch (this.currentState.stateName) {
+      case Active.STATE_NAME:
+        const event = new MappingPropertiesUpdatedV1(this.aggregateId, this.getNextSequence(), {
+          properties: command.properties
+        });
+        return this.save(event).then(() => {
           this.aggregateEvent(event);
-          return this.currentState();
+          return this.getEntity();
         });
       default:
         return Promise.reject(
@@ -135,14 +145,16 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
    * @returns A promise with the state after running the command
    */
   private handleDeleteMapping(command: DeleteMapping): Promise<MappingState> {
-    switch (this.state.$state) {
-      case Active.NAME:
-        return this.save(new MappingDeletedV1(this.aggregateId, this.getNextSequence())).then((event) => {
+    switch (this.currentState.stateName) {
+      case Active.STATE_NAME:
+        const event = new MappingDeletedV1(this.aggregateId, this.getNextSequence());
+
+        return this.save(event).then(() => {
           this.aggregateEvent(event);
-          return this.currentState();
+          return this.getEntity();
         });
       default:
-      // idempotent action
+        return Promise.reject(new Error(`Mapping ${this.aggregateId} doesn't exist and cannot be deleted`));
     }
   }
 
@@ -154,8 +166,8 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
    *
    * @param snapshot Mapping state snapshot
    */
-  protected aggregateSnapshot(snapshot: Snapshot) {
-    this.state = snapshot.state;
+  protected aggregateSnapshot(snapshot: Snapshot<MappingState>) {
+    this.currentState = snapshot.payload;
   }
 
   /**
@@ -164,7 +176,7 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
    * @param event Mapping event
    */
   protected aggregateEvent(event: MappingEvent) {
-    switch (event.$event) {
+    switch (event.eventType) {
       case MappingCreatedV1.NAME:
         this.aggregateMappingCreatedV1(event as MappingCreatedV1);
         break;
@@ -175,7 +187,7 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
         this.aggregateMappingDeletedV1(event as MappingDeletedV1);
         break;
       default:
-      // TODO handle error
+        return Promise.reject(new Error(`Event ${event.eventType} not supported by MappingAggregate.`));
     }
   }
 
@@ -190,11 +202,11 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
    */
   private aggregateMappingCreatedV1(event: MappingCreatedV1) {
     const mapping = new MappingBuilder()
-      .uuid(event.$aggregateId)
-      .name(event.name)
-      .properties(event.properties)
+      .uuid(event.aggregateId)
+      .name(event.payload.name)
+      .properties(event.payload.properties)
       .build();
-    this.state = new Active(mapping);
+    this.currentState = new Active(mapping);
   }
 
   /**
@@ -206,9 +218,9 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
    * @param event Mapping properties update event V1
    */
   private aggregateMappingPropertiesUpdatedV1(event: MappingPropertiesUpdatedV1) {
-    const currentMapping = (this.state as Active<Mapping>).data;
-    const mapping = new MappingBuilder(currentMapping).properties(event.properties).build();
-    this.state = new Active(mapping);
+    const currentMapping = (this.currentState as Active<Mapping>).payload;
+    const mapping = new MappingBuilder(currentMapping).properties(event.payload.properties).build();
+    this.currentState = new Active(mapping);
   }
 
   /**
@@ -220,7 +232,7 @@ export class MappingAggregate extends Aggregate<Mapping, MappingState, MappingCo
    * @param event Mapping deleted event V1
    */
   private aggregateMappingDeletedV1(event: MappingDeletedV1) {
-    const mapping = (this.state as Active<Mapping>).data;
-    this.state = new Deleted(mapping);
+    const mapping = (this.currentState as Active<Mapping>).payload;
+    this.currentState = new Deleted(mapping);
   }
 }

@@ -1,4 +1,4 @@
-import { Command } from "hyperdoc-eventstore";
+import { Command } from "eventum-sdk";
 import { NodeProperties } from "hyperdoc-core";
 
 export class CreateNode extends Command {
@@ -10,7 +10,7 @@ export class CreateNode extends Command {
 
   constructor(mappingName: string, properties: NodeProperties) {
     super(CreateNode.NAME);
-    this.mappingName = this.mappingName;
+    this.mappingName = mappingName;
     this.properties = properties;
   }
 }

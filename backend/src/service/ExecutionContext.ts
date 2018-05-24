@@ -1,14 +1,15 @@
-import { AggregateConfig } from "hyperdoc-eventstore";
+import { AggregateConfig } from "eventum-sdk";
 
 export interface AuthenticationContext {
   userUuid: string;
 }
 
-export interface AggregateContext {
-  config: AggregateConfig;
+export interface AggregatesContext {
+  node: AggregateConfig;
+  mapping: AggregateConfig;
 }
 
 export interface ExecutionContext {
   auth: AuthenticationContext;
-  aggregate: AggregateContext;
+  aggregates: AggregatesContext;
 }

@@ -1,14 +1,14 @@
-import { Event } from "hyperdoc-eventstore";
+import { Event } from "eventum-sdk";
 import { NodeProperties } from "hyperdoc-core";
 
-export class NodePropertiesUpdatedV1 extends Event {
+export interface NodePropertiesUpdatedV1Payload {
+  properties: NodeProperties;
+}
+
+export class NodePropertiesUpdatedV1 extends Event<NodePropertiesUpdatedV1Payload> {
   public static readonly NAME = "NodePropertiesUpdated";
 
-  // data
-  public readonly properties: NodeProperties;
-
-  constructor(aggregateId: string, sequence: number, properties: NodeProperties) {
-    super(NodePropertiesUpdatedV1.NAME, aggregateId, sequence);
-    this.properties = properties;
+  constructor(aggregateId: string, sequence: number, payload: NodePropertiesUpdatedV1Payload) {
+    super(NodePropertiesUpdatedV1.NAME, aggregateId, sequence, payload);
   }
 }

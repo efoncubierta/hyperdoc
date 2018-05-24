@@ -1,0 +1,10 @@
+provider: INMEMORY
+
+aws:
+  lambdas:
+    createSnapshot:
+      functionName: createSnapshot_test
+    getJournal:
+      functionName: getJournal_test
+    saveEvents:
+      functionName: saveEvents_test

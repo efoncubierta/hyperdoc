@@ -1,4 +1,4 @@
-import { Command } from "hyperdoc-eventstore";
+import { Command } from "eventum-sdk";
 
 export class GetNode extends Command {
   public static readonly NAME = "GetNode";

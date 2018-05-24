@@ -1,8 +1,8 @@
 import * as UUID from "uuid";
+import { Active } from "eventum-sdk";
 import { ExecutionContext } from "./ExecutionContext";
 import { Mappings, Mapping, MappingProperties } from "hyperdoc-core";
 import { MappingAggregate } from "../aggregate/MappingAggregate";
-import { Active } from "hyperdoc-eventstore";
 import { SetMappingProperties } from "../message/command/SetMappingProperties";
 import { GetMapping } from "../message/command/GetMapping";
 import { CreateMapping } from "../message/command/CreateMapping";
@@ -31,12 +31,14 @@ export class MappingService {
    */
   public static get(context: ExecutionContext, uuid: string): Promise<Mapping> {
     return this.getAggregate(context, uuid)
-      .handle(new GetMapping())
+      .then((aggregate) => {
+        return aggregate.handle(new GetMapping());
+      })
       .then((state) => {
         // if aggregate is active, then return the mapping. Otherwise return null
-        switch (state.$state) {
-          case Active.NAME:
-            return (state as Active<Mapping>).data;
+        switch (state.stateName) {
+          case Active.STATE_NAME:
+            return (state as Active<Mapping>).payload;
           default:
             return null;
         }
@@ -71,12 +73,14 @@ export class MappingService {
     // TODO check permissions
 
     return this.getAggregate(context, UUID.v1())
-      .handle(new CreateMapping(name, properties))
+      .then((aggregate) => {
+        return aggregate.handle(new CreateMapping(name, properties));
+      })
       .then((state) => {
         // if aggregate is active, then return the mapping. Otherwise return null
-        switch (state.$state) {
-          case Active.NAME:
-            return (state as Active<Mapping>).data;
+        switch (state.stateName) {
+          case Active.STATE_NAME:
+            return (state as Active<Mapping>).payload;
           default:
             return null;
         }
@@ -98,13 +102,16 @@ export class MappingService {
   ): Promise<Mapping> {
     // TODO validate
     // TODO check permissions
-    return this.getAggregate(context, UUID.v1())
-      .handle(new SetMappingProperties(properties))
+
+    return this.getAggregate(context, uuid)
+      .then((aggregate) => {
+        return aggregate.handle(new SetMappingProperties(properties));
+      })
       .then((state) => {
         // if aggregate is active, then return the mapping. Otherwise return null
-        switch (state.$state) {
-          case Active.NAME:
-            return (state as Active<Mapping>).data;
+        switch (state.stateName) {
+          case Active.STATE_NAME:
+            return (state as Active<Mapping>).payload;
           default:
             return null;
         }
@@ -129,7 +136,7 @@ export class MappingService {
     });
   }
 
-  private static getAggregate(context: ExecutionContext, uuid: string): MappingAggregate {
-    return new MappingAggregate(uuid, context.aggregate.config);
+  private static getAggregate(context: ExecutionContext, uuid: string): Promise<MappingAggregate> {
+    return MappingAggregate.build(uuid, context.aggregates.mapping);
   }
 }

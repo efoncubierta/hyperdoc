@@ -1,12 +1,12 @@
-import { Aggregate, AggregateConfig, New, Active, Deleted, Snapshot } from "hyperdoc-eventstore";
+import { AggregateConfig, New, Active, Deleted, Snapshot, AggregateFSM } from "eventum-sdk";
 import { Node, NodeBuilder } from "hyperdoc-core";
 import { GetNode } from "../message/command/GetNode";
 import { CreateNode } from "../message/command/CreateNode";
-import { DeleteNode } from "../message/command/DeleteNode";
 import { SetNodeProperties } from "../message/command/SetNodeProperties";
-import { NodeCreatedV1 } from "../message/event/NodeCreatedV1";
-import { NodeDeletedV1 } from "../message/event/NodeDeletedV1";
+import { DeleteNode } from "../message/command/DeleteNode";
 import { NodePropertiesUpdatedV1 } from "../message/event/NodePropertiesUpdatedV1";
+import { NodeDeletedV1 } from "../message/event/NodeDeletedV1";
+import { NodeCreatedV1 } from "../message/event/NodeCreatedV1";
 
 export type NodeCommand = GetNode | CreateNode | DeleteNode | SetNodeProperties;
 export type NodeEvent = NodeCreatedV1 | NodeDeletedV1 | NodePropertiesUpdatedV1;
@@ -15,9 +15,9 @@ export type NodeState = New<Node> | Active<Node> | Deleted<Node>;
 /**
  * Aggregate for {@link Node} entities.
  */
-export class NodeAggregate extends Aggregate<Node, NodeState, NodeCommand, NodeEvent> {
+export class NodeAggregate extends AggregateFSM<Node, NodeState, NodeCommand, NodeEvent> {
   private readonly uuid: string;
-  private state: NodeState = new New();
+  private currentState: NodeState = new New();
 
   /**
    * Constructor.
@@ -25,8 +25,15 @@ export class NodeAggregate extends Aggregate<Node, NodeState, NodeCommand, NodeE
    * @param uuid - Node UUID
    * @param config - Aggregate configuration
    */
-  constructor(uuid: string, config: AggregateConfig) {
+  protected constructor(uuid: string, config: AggregateConfig) {
     super(uuid, config);
+  }
+
+  public static build(uuid: string, config: AggregateConfig): Promise<NodeAggregate> {
+    const aggregate = new NodeAggregate(uuid, config);
+    return aggregate.rehydrate().then(() => {
+      return aggregate;
+    });
   }
 
   /**
@@ -36,7 +43,7 @@ export class NodeAggregate extends Aggregate<Node, NodeState, NodeCommand, NodeE
    * @returns A promise with the state after running the command
    */
   public handle(command: NodeCommand): Promise<NodeState> {
-    switch (command.$command) {
+    switch (command.commandType) {
       case GetNode.NAME:
         return this.handleGetNode(command as GetNode);
       case CreateNode.NAME:
@@ -46,15 +53,15 @@ export class NodeAggregate extends Aggregate<Node, NodeState, NodeCommand, NodeE
       case DeleteNode.NAME:
         return this.handleDeleteNode(command as DeleteNode);
       default:
-        return Promise.reject(`Command ${command.$command} not supported by NodeAggregate.`);
+        return Promise.reject(`Command ${command.commandType} not supported by NodeAggregate.`);
     }
   }
 
   /**
    * Get current state.
    */
-  protected currentState(): NodeState {
-    return this.state;
+  protected getEntity(): NodeState {
+    return this.currentState;
   }
 
   /**
@@ -64,7 +71,7 @@ export class NodeAggregate extends Aggregate<Node, NodeState, NodeCommand, NodeE
    * @returns A promise with the state after running the command
    */
   private handleGetNode(command: GetNode): Promise<NodeState> {
-    return Promise.resolve(this.currentState());
+    return Promise.resolve(this.getEntity());
   }
 
   /**
@@ -80,13 +87,15 @@ export class NodeAggregate extends Aggregate<Node, NodeState, NodeCommand, NodeE
    * @returns A promise with the state after running the command
    */
   private handleCreateNode(command: CreateNode): Promise<NodeState> {
-    switch (this.state.$state) {
-      case New.NAME:
-        return this.save(
-          new NodeCreatedV1(this.aggregateId, this.getNextSequence(), command.mappingName, command.properties)
-        ).then((event) => {
+    switch (this.currentState.stateName) {
+      case New.STATE_NAME:
+        const event = new NodeCreatedV1(this.aggregateId, this.getNextSequence(), {
+          mappingName: command.mappingName,
+          properties: command.properties
+        });
+        return this.save(event).then(() => {
           this.aggregateEvent(event);
-          return this.currentState();
+          return this.getEntity();
         });
       default:
         return Promise.reject(`Node ${this.aggregateId} already exists.`);
@@ -106,13 +115,14 @@ export class NodeAggregate extends Aggregate<Node, NodeState, NodeCommand, NodeE
    * @returns A promise with the state after running the command
    */
   private handleSetNodeProperties(command: SetNodeProperties): Promise<NodeState> {
-    switch (this.state.$state) {
-      case Active.NAME:
-        return this.save(
-          new NodePropertiesUpdatedV1(this.aggregateId, this.getNextSequence(), command.properties)
-        ).then((event) => {
+    switch (this.currentState.stateName) {
+      case Active.STATE_NAME:
+        const event = new NodePropertiesUpdatedV1(this.aggregateId, this.getNextSequence(), {
+          properties: command.properties
+        });
+        return this.save(event).then(() => {
           this.aggregateEvent(event);
-          return this.currentState();
+          return this.getEntity();
         });
       default:
         return Promise.reject(
@@ -135,14 +145,16 @@ export class NodeAggregate extends Aggregate<Node, NodeState, NodeCommand, NodeE
    * @returns A promise with the state after running the command
    */
   private handleDeleteNode(command: DeleteNode): Promise<NodeState> {
-    switch (this.state.$state) {
-      case Active.NAME:
-        return this.save(new NodeDeletedV1(this.aggregateId, this.getNextSequence())).then((event) => {
+    switch (this.currentState.stateName) {
+      case Active.STATE_NAME:
+        const event = new NodeDeletedV1(this.aggregateId, this.getNextSequence());
+
+        return this.save(event).then(() => {
           this.aggregateEvent(event);
-          return this.currentState();
+          return this.getEntity();
         });
       default:
-      // idempotent action
+        return Promise.reject(new Error(`Node ${this.aggregateId} doesn't exist and cannot be deleted`));
     }
   }
 
@@ -154,8 +166,8 @@ export class NodeAggregate extends Aggregate<Node, NodeState, NodeCommand, NodeE
    *
    * @param snapshot Node state snapshot
    */
-  protected aggregateSnapshot(snapshot: Snapshot) {
-    this.state = snapshot.state;
+  protected aggregateSnapshot(snapshot: Snapshot<NodeState>) {
+    this.currentState = snapshot.payload;
   }
 
   /**
@@ -164,7 +176,7 @@ export class NodeAggregate extends Aggregate<Node, NodeState, NodeCommand, NodeE
    * @param event Node event
    */
   protected aggregateEvent(event: NodeEvent) {
-    switch (event.$event) {
+    switch (event.eventType) {
       case NodeCreatedV1.NAME:
         this.aggregateNodeCreatedV1(event as NodeCreatedV1);
         break;
@@ -175,7 +187,7 @@ export class NodeAggregate extends Aggregate<Node, NodeState, NodeCommand, NodeE
         this.aggregateNodeDeletedV1(event as NodeDeletedV1);
         break;
       default:
-      // TODO handle error
+        return Promise.reject(new Error(`Event ${event.eventType} not supported by NodeAggregate.`));
     }
   }
 
@@ -190,11 +202,11 @@ export class NodeAggregate extends Aggregate<Node, NodeState, NodeCommand, NodeE
    */
   private aggregateNodeCreatedV1(event: NodeCreatedV1) {
     const node = new NodeBuilder()
-      .uuid(event.$aggregateId)
-      .mapping(event.mappingName)
-      .properties(event.properties)
+      .uuid(event.aggregateId)
+      .mapping(event.payload.mappingName)
+      .properties(event.payload.properties)
       .build();
-    this.state = new Active(node);
+    this.currentState = new Active(node);
   }
 
   /**
@@ -206,9 +218,9 @@ export class NodeAggregate extends Aggregate<Node, NodeState, NodeCommand, NodeE
    * @param event Node properties update event V1
    */
   private aggregateNodePropertiesUpdatedV1(event: NodePropertiesUpdatedV1) {
-    const currentNode = (this.state as Active<Node>).data;
-    const node = new NodeBuilder(currentNode).properties(event.properties).build();
-    this.state = new Active(node);
+    const currentNode = (this.currentState as Active<Node>).payload;
+    const node = new NodeBuilder(currentNode).properties(event.payload.properties).build();
+    this.currentState = new Active(node);
   }
 
   /**
@@ -220,7 +232,7 @@ export class NodeAggregate extends Aggregate<Node, NodeState, NodeCommand, NodeE
    * @param event Node deleted event V1
    */
   private aggregateNodeDeletedV1(event: NodeDeletedV1) {
-    const node = (this.state as Active<Node>).data;
-    this.state = new Deleted(node);
+    const node = (this.currentState as Active<Node>).payload;
+    this.currentState = new Deleted(node);
   }
 }

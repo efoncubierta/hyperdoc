@@ -3,7 +3,7 @@ import * as UUID from "uuid";
 import { Node, NodeProperties, Audit, NodeBuilder, Mapping, NodeValidator, NodeSchema } from "hyperdoc-core";
 import { ExecutionContext } from "./ExecutionContext";
 import { NodeAggregate } from "../aggregate/NodeAggregate";
-import { Active } from "hyperdoc-eventstore";
+import { Active } from "eventum-sdk";
 import { GetNode } from "../message/command/GetNode";
 import { CreateNode } from "../message/command/CreateNode";
 import { SetNodeProperties } from "../message/command/SetNodeProperties";
@@ -21,12 +21,14 @@ export class NodeService {
    */
   public static get(context: ExecutionContext, uuid: string): Promise<Node> {
     return this.getAggregate(context, uuid)
-      .handle(new GetNode())
+      .then((aggregate) => {
+        return aggregate.handle(new GetNode());
+      })
       .then((state) => {
         // if aggregate is active, then return the mapping. Otherwise return null
-        switch (state.$state) {
-          case Active.NAME:
-            return (state as Active<Node>).data;
+        switch (state.stateName) {
+          case Active.STATE_NAME:
+            return (state as Active<Node>).payload;
           default:
             return null;
         }
@@ -46,12 +48,14 @@ export class NodeService {
     // TODO check permissions
 
     return this.getAggregate(context, UUID.v1())
-      .handle(new CreateNode(mappingName, properties))
+      .then((aggregate) => {
+        return aggregate.handle(new CreateNode(mappingName, properties));
+      })
       .then((state) => {
         // if aggregate is active, then return the mapping. Otherwise return null
-        switch (state.$state) {
-          case Active.NAME:
-            return (state as Active<Node>).data;
+        switch (state.stateName) {
+          case Active.STATE_NAME:
+            return (state as Active<Node>).payload;
           default:
             return null;
         }
@@ -70,13 +74,15 @@ export class NodeService {
     // TODO validation
     // TODO check permissions
 
-    return this.getAggregate(context, UUID.v1())
-      .handle(new SetNodeProperties(properties))
+    return this.getAggregate(context, uuid)
+      .then((aggregate) => {
+        return aggregate.handle(new SetNodeProperties(properties));
+      })
       .then((state) => {
         // if aggregate is active, then return the mapping. Otherwise return null
-        switch (state.$state) {
-          case Active.NAME:
-            return (state as Active<Node>).data;
+        switch (state.stateName) {
+          case Active.STATE_NAME:
+            return (state as Active<Node>).payload;
           default:
             return null;
         }
@@ -102,7 +108,7 @@ export class NodeService {
     }
   }
 
-  private static getAggregate(context: ExecutionContext, uuid: string): NodeAggregate {
-    return new NodeAggregate(uuid, context.aggregate.config);
+  private static getAggregate(context: ExecutionContext, uuid: string): Promise<NodeAggregate> {
+    return NodeAggregate.build(uuid, context.aggregates.node);
   }
 }

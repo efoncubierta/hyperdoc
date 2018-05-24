@@ -1,4 +1,4 @@
-import { Command } from "hyperdoc-eventstore";
+import { Command } from "eventum-sdk";
 import { NodeProperties } from "hyperdoc-core";
 
 export class SetNodeProperties extends Command {

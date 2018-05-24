@@ -1,4 +1,4 @@
-import { Command } from "hyperdoc-eventstore";
+import { Command } from "eventum-sdk";
 
 export class DeleteNode extends Command {
   public static readonly NAME = "DeleteNode";

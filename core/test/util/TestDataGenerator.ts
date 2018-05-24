@@ -124,7 +124,8 @@ export class TestDataGenerator {
 
   public static randomMappingProperties(maxDepth: number = 3): MappingProperties {
     const properties: MappingProperties = {};
-    for (let i = 0; i < faker.random.number(10); i++) {
+
+    for (let i = 0; i < 10; i++) {
       const propertyName = this.randomMappingPropertyName();
       const propertyType = this.randomMappingPropertyType();
       const mandatory = faker.random.boolean();
@@ -143,7 +144,7 @@ export class TestDataGenerator {
             multiple,
             properties: this.randomMappingProperties(maxDepth - 1)
           } as MappingNestedProperty;
-          return;
+          break;
         default:
           properties[propertyName] = {
             type: propertyType,
@@ -196,7 +197,7 @@ export class TestDataGenerator {
 
   public static randomNodeProperties(maxDepth: number = 3): NodeProperties {
     const properties: NodeProperties = {};
-    for (let i = 0; i <= faker.random.number(10); i++) {
+    for (let i = 0; i <= faker.random.number({ min: 2, max: 10 }); i++) {
       const propertyName = this.randomMappingPropertyName();
       const propertyType = this.randomMappingPropertyType();
       const multiple = faker.random.boolean();

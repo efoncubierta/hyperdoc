@@ -1,6 +1,6 @@
-import { Event } from "hyperdoc-eventstore";
+import { Event } from "eventum-sdk";
 
-export class NodeDeletedV1 extends Event {
+export class NodeDeletedV1 extends Event<{}> {
   public static readonly NAME = "NodeDeleted";
 
   constructor(aggregateId: string, sequence: number) {
