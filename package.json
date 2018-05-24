@@ -6,10 +6,10 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hyperdoc/hyperdoc.git"
+    "url": "git+https://github.com/efoncubierta/hyperdoc.git"
   },
   "bugs": {
-    "url": "https://github.com/hyperdoc/hyperdoc/issues"
+    "url": "https://github.com/efoncubierta/hyperdoc/issues"
   },
   "homepage": "https://hyperdoc.io",
   "license": "Apache-2.0",
