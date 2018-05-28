@@ -10,6 +10,7 @@ import { NodeService } from "../../src/service/NodeService";
 
 // test dependencies
 import { TestDataGenerator } from "../util/TestDataGenerator";
+import { AWSMock } from "../mock/aws";
 
 const testExecutionContext = TestDataGenerator.randomExecutionContext();
 
@@ -18,6 +19,12 @@ function nodeServiceTests() {
     before(() => {
       chai.should();
       chai.use(chaiAsPromised);
+
+      AWSMock.enableMock();
+    });
+
+    after(() => {
+      AWSMock.restoreMock();
     });
 
     it("should not get a non-existing node", (done) => {
@@ -28,7 +35,7 @@ function nodeServiceTests() {
         .then(done);
     });
 
-    it("should go through the life cycle", (done) => {
+    it.skip("should go through the life cycle", (done) => {
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
       const nodePropertiesUpdate = TestDataGenerator.randomNodeProperties();
