@@ -1,0 +1,50 @@
+// external dependencies
+import { Schema, Validator } from "jsonschema";
+
+// models
+import { Mapping } from "../model";
+
+// model schemas
+import { AuditSchema, NodePropertySchema, NodePropertiesSchema } from "./schemas";
+
+import { MappingSchemaGenerator } from "./MappingSchemaGenerator";
+
+/**
+ * Node validator.
+ */
+export class NodeValidator {
+  /**
+   * Get a node validator based on a custom node properties schema.
+   *
+   * @param {Schema} nodePropertiesSchema - Node properties JSON schema
+   * @returns {Validator} JSON schema validator
+   */
+  private static getNodeValidator(nodePropertiesSchema: Schema): Validator {
+    // create validator with custom node schema
+    const validator = new Validator();
+    validator.addSchema(AuditSchema, AuditSchema.id);
+    validator.addSchema(NodePropertySchema, NodePropertySchema.id);
+    validator.addSchema(nodePropertiesSchema, NodePropertiesSchema.id);
+
+    return validator;
+  }
+
+  /**
+   * Get the default node validator based on the Node JSON schema.
+   *
+   * @returns {Validator} JSON schema validator
+   */
+  public static getDefaultValidator(): Validator {
+    return this.getNodeValidator(NodePropertiesSchema);
+  }
+
+  /**
+   * Get node validator based on the Node JSON schema plus custom mapping schema.
+   *
+   * @param {Mapping} mapping - Mapping
+   * @returns {Validator} JSON schema validator
+   */
+  public static getValidatorFromMapping(mapping?: Mapping): Validator {
+    return this.getNodeValidator(MappingSchemaGenerator.toNodePropertiesSchema(mapping));
+  }
+}

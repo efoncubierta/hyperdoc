@@ -1,0 +1,10 @@
+materializer_contentModel:
+  handler: src/lambda/materializer/contentModel.handler
+  events:
+    - stream:
+        type: dynamodb
+        arn: ${cf:eventum-dev.EventsDynamoDbTableStreamArn}
+        # arn: arn:aws:dynamodb:eu-west-1:673861708003:table/eventum-events-dev/stream/2018-05-27T10:53:41.775
+          # Fn::GetAtt:
+          #   - ${self:custom.eventum.eventsTableName}
+          #   - StreamArn

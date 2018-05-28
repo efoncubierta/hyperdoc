@@ -12,10 +12,10 @@ before_install:
   - cd ../hyperdoc
 
 install:
-  - npm run install:all
+  - npm run install
 
 script:
-  - npm run test
+  - npm run test:nyc
   - npm run codecov
 
 #notifications:

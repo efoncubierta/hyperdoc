@@ -2,7 +2,7 @@ Resources:
   NodesDynamoDbTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: ${self:provider.environment.NODES_TABLE}
+      TableName: ${self:provider.environment.NODES_TABLE_NAME}
       AttributeDefinitions:
         - AttributeName: uuid
           AttributeType: S
@@ -16,13 +16,23 @@ Resources:
   MappingsDynamoDbTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: ${self:provider.environment.MAPPINGS_TABLE}
+      TableName: ${self:provider.environment.MAPPINGS_TABLE_NAME}
       AttributeDefinitions:
+        - AttributeName: uuid
+          AttributeType: S
         - AttributeName: name
           AttributeType: S
       KeySchema:
-        - AttributeName: name
+        - AttributeName: uuid
           KeyType: HASH
       ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+      LocalSecondaryIndexes:
+        - IndexName: NameIndex
+          KeySchema:
+            - AttributeName: name
+              KeyType: RANGE
+          Projection:
+            ProjectionType: KEYS_ONLY
+              

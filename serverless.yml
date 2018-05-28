@@ -1,10 +1,14 @@
 service:
-  name: hyperdoc-api
+  name: hyperdoc
 
 frameworkVersion: ">=1.0.0 <2.0.0"
 
 plugins:
   - serverless-webpack
+
+custom:
+  eventum:
+    eventsTableName: eventum-${self:provider.stage}-events
 
 provider:
   name: aws
@@ -12,10 +16,8 @@ provider:
   stage: dev
   region: eu-west-1
   environment:
-    JOURNALS_TABLE: Journals_${self:provider.stage}
-    SNAPSHOTS_TABLE: Snapshots_${self:provider.stage}
-    NODES_TABLE: Nodes_${self:provider.stage}
-    MAPPINGS_TABLE: Mappings_${self:provider.stage}
+    NODES_TABLE_NAME: ${self:service.name}-${self:provider.stage}-nodes
+    MAPPINGS_TABLE_NAME: ${self:service.name}-${self:provider.stage}-mappings
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -25,13 +27,23 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
+        - dynamodb:DescribeStream
+        - dynamodb:GetRecords
+        - dynamodb:GetShardIterator
+        - dynamodb:ListStreams
       Resource: "arn:aws:dynamodb:*"
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+        - lambda:InvokeAsync
+      Resource: "*"
 
 package:
   individually: true
 
 functions:
   - ${file(serverless/api-functions.yml)}
+  - ${file(serverless/materializers-functions.yml)}
 
 resources:
   - ${file(serverless/dynamodb.yml)}

@@ -1,1 +1,0 @@
-# Hyperdoc :: Core library

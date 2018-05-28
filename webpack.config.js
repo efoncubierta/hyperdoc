@@ -9,7 +9,8 @@ const slsw = require("serverless-webpack");
 
 module.exports = {
   entry: slsw.lib.entries,
-  devtool: "source-map",
+  // devtool: "source-map",
+  mode: slsw.lib.webpack.isLocal ? "development" : "production",
   resolve: {
     extensions: [".js", ".jsx", ".json", ".ts", ".tsx", ".graphql", ".gql"]
   },
@@ -20,8 +21,13 @@ module.exports = {
   },
   target: "node",
   module: {
-    loaders: [
-      { test: /\.ts(x?)$/, loader: "ts-loader" }
+    rules: [
+      { test: /\.ts(x?)$/, loader: "ts-loader" },
+      {
+        type: "javascript/auto",
+        test: /\.mjs$/,
+        use: []
+      }
     ]
   },
   externals: ["aws-sdk"]
