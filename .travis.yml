@@ -12,7 +12,7 @@ before_install:
   - cd ../hyperdoc
 
 install:
-  - npm run install
+  - npm install
 
 script:
   - npm run test:nyc
