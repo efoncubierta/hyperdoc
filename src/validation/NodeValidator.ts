@@ -2,7 +2,7 @@
 import { Schema, Validator } from "jsonschema";
 
 // models
-import { Mapping } from "../model";
+import { Mapping } from "../model/Mapping";
 
 // model schemas
 import { AuditSchema, NodePropertySchema, NodePropertiesSchema } from "./schemas";

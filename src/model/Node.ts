@@ -1,4 +1,4 @@
-import { Audit } from ".";
+import { Audit } from "./Audit";
 
 /**
  * Node unique key.

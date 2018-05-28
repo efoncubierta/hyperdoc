@@ -16,6 +16,8 @@ provider:
   stage: dev
   region: eu-west-1
   environment:
+    STAGE: ${self:provider.stage}
+    SERVICE_NAME: ${self:service.name}
     NODES_TABLE_NAME: ${self:service.name}-${self:provider.stage}-nodes
     MAPPINGS_TABLE_NAME: ${self:service.name}-${self:provider.stage}-mappings
   iamRoleStatements:

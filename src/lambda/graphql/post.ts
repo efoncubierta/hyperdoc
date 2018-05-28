@@ -16,16 +16,30 @@ const executionContext: ExecutionContext = {
   }
 };
 
+/**
+ * AWS Lambda function to handle requests to /graphql endpoint. This is the GraphQL endpoint, used to
+ * manage Hyperdoc data.
+ *
+ * @param event AWS API Gateway event
+ * @param context AWS Lambda execution context
+ * @param callback Callback
+ */
 export const handler: Handler = (event: APIGatewayEvent, context: Context, callback: Callback) => {
+  // TODO make CORS options filter configurable
   const callbackFilter = (error, output) => {
     output.headers["Access-Control-Allow-Origin"] = "*";
     callback(error, output);
   };
-  getGraphqlSchema(executionContext).then((graphqlSchema) => {
-    const graphqlHandler = graphqlLambda({
-      schema: graphqlSchema
-    });
 
-    return graphqlHandler(event, context, callbackFilter);
-  });
+  // get the Hyperdoc schema as a GraphQL schema representation
+  getGraphqlSchema(executionContext)
+    .then((graphqlSchema) => {
+      // create Apollo GraphQL server
+      const graphqlHandler = graphqlLambda({
+        schema: graphqlSchema
+      });
+
+      return graphqlHandler(event, context, callbackFilter);
+    })
+    .catch(callback);
 };

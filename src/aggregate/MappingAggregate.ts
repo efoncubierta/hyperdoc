@@ -15,12 +15,23 @@ import { MappingCreatedV1 } from "../message/event/MappingCreatedV1";
 import { MappingPropertiesUpdatedV1 } from "../message/event/MappingPropertiesUpdatedV1";
 import { MappingDeletedV1 } from "../message/event/MappingDeletedV1";
 
+/**
+ * Mapping commands.
+ */
 export type MappingCommand = GetMapping | CreateMapping | DeleteMapping | SetMappingProperties;
+
+/**
+ * Mapping events.
+ */
 export type MappingEvent = MappingCreatedV1 | MappingDeletedV1 | MappingPropertiesUpdatedV1;
+
+/**
+ * Mapping states.
+ */
 export type MappingState = New<Mapping> | Active<Mapping> | Deleted<Mapping>;
 
 /**
- * Aggregate for {@link Mapping} entities.
+ * FSM aggregate to handle {@link MappingCommand}.
  */
 export class MappingAggregate extends AggregateFSM<Mapping, MappingState, MappingCommand, MappingEvent> {
   private readonly uuid: string;

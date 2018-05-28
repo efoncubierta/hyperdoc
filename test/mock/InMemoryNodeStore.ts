@@ -1,5 +1,5 @@
 import { NodeStore } from "../../src/store/NodeStore";
-import { Node } from "../../src/model";
+import { Node } from "../../src/model/Node";
 
 export class InMemoryNodeStore {
   private static nodes: Node[] = [];

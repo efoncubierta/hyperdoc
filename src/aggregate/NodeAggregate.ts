@@ -15,12 +15,23 @@ import { NodeCreatedV1 } from "../message/event/NodeCreatedV1";
 import { NodePropertiesUpdatedV1 } from "../message/event/NodePropertiesUpdatedV1";
 import { NodeDeletedV1 } from "../message/event/NodeDeletedV1";
 
+/**
+ * Node commands.
+ */
 export type NodeCommand = GetNode | CreateNode | DeleteNode | SetNodeProperties;
+
+/**
+ * Node events.
+ */
 export type NodeEvent = NodeCreatedV1 | NodeDeletedV1 | NodePropertiesUpdatedV1;
+
+/**
+ * Node states.
+ */
 export type NodeState = New<Node> | Active<Node> | Deleted<Node>;
 
 /**
- * Aggregate for {@link Node} entities.
+ * FSM aggregate to handle {@link NodeCommand}.
  */
 export class NodeAggregate extends AggregateFSM<Node, NodeState, NodeCommand, NodeEvent> {
   private readonly uuid: string;

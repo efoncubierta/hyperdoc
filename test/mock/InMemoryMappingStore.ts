@@ -1,4 +1,4 @@
-import { Mapping } from "../../src/model";
+import { Mapping } from "../../src/model/Mapping";
 
 export class InMemoryMappingStore {
   private static mappings: Mapping[] = [];
