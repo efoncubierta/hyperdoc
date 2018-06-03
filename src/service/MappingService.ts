@@ -1,20 +1,15 @@
 // external dependencies
 import * as UUID from "uuid";
-import { Active } from "eventum-sdk";
 
 // models
 import { Mappings, Mapping, MappingProperties } from "../model/Mapping";
 
 // aggregates
 import { MappingAggregate } from "../aggregate/MappingAggregate";
+import { MappingStateName } from "../aggregate/MappingStateName";
 
 // stores
 import { StoreFactory } from "../store/StoreFactory";
-
-// mapping messages
-import { SetMappingProperties } from "../message/command/SetMappingProperties";
-import { GetMapping } from "../message/command/GetMapping";
-import { CreateMapping } from "../message/command/CreateMapping";
 
 import { ExecutionContext } from "./ExecutionContext";
 
@@ -90,13 +85,13 @@ export class MappingService {
       })
       .then((aggregate) => {
         // node aggregate checks whether the node already exist before executing the CreateMapping command
-        return aggregate.handle(new CreateMapping(name, properties));
+        return aggregate.create(name, properties);
       })
       .then((state) => {
         // if aggregate is active, then return the mapping. Fail otherwise
         switch (state.stateName) {
-          case Active.STATE_NAME:
-            return (state as Active<Mapping>).payload;
+          case MappingStateName.Active:
+            return state.payload;
           default:
             throw new Error(`Mapping ${uuid} is in an inconsistent state`);
         }
@@ -123,13 +118,13 @@ export class MappingService {
     return MappingService.getAggregate(uuid)
       .then((aggregate) => {
         // mapping aggregate check whether the mapping exist before executing the SetMappingProperties command
-        return aggregate.handle(new SetMappingProperties(properties));
+        return aggregate.setProperties(properties);
       })
       .then((state) => {
         // if aggregate is active, then return the mapping. Otherwise return null
         switch (state.stateName) {
-          case Active.STATE_NAME:
-            return (state as Active<Mapping>).payload;
+          case MappingStateName.Active:
+            return state.payload;
           default:
             throw new Error(`Mapping ${uuid} is in an inconsistent state`);
         }

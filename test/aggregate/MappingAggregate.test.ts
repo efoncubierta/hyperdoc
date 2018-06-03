@@ -5,9 +5,6 @@ import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 import "mocha";
 
-// eventum-sdk dependencies
-import { New, Active, Deleted, AggregateError } from "eventum-sdk";
-
 // models
 import { Mapping } from "../../src/model/Mapping";
 
@@ -16,6 +13,7 @@ import { MappingAggregate } from "../../src/aggregate/MappingAggregate";
 
 // test dependencies
 import { TestDataGenerator } from "../util/TestDataGenerator";
+import { MappingStateName } from "../../src/aggregate/MappingStateName";
 
 function mappingAggregateTests() {
   describe("MappingAggregate", () => {
@@ -24,128 +22,90 @@ function mappingAggregateTests() {
       chai.use(chaiAsPromised);
     });
 
-    it("should go through the life cycle", (done) => {
+    it("should go through the life cycle", () => {
       const aggregateId = TestDataGenerator.randomUUID();
-      const createMapping = TestDataGenerator.randomCreateMapping();
-      const getMapping = TestDataGenerator.randomGetMapping();
-      const deleteMapping = TestDataGenerator.randomDeleteMapping();
+      const mappingName = TestDataGenerator.randomMappingName();
+      const mappingProperties = TestDataGenerator.randomMappingProperties();
 
-      MappingAggregate.build(aggregateId)
-        .then((mappingAggregate) => {
-          mappingAggregate
-            .handle(getMapping)
-            .then((mappingState) => {
-              mappingState.should.exist;
-              mappingState.stateName.should.be.equal(New.STATE_NAME);
+      return MappingAggregate.build(aggregateId).then((mappingAggregate) => {
+        const initialState = mappingAggregate.get();
+        initialState.should.exist;
+        initialState.stateName.should.equal(MappingStateName.New);
 
-              return mappingAggregate.handle(createMapping);
-            })
-            .then((mappingState) => {
-              mappingState.should.exist;
-              mappingState.stateName.should.be.equal(Active.STATE_NAME);
-
-              const mapping = (mappingState as Active<Mapping>).payload;
-
-              mapping.uuid.should.exist;
-              mapping.uuid.should.be.equal(aggregateId);
-              mapping.properties.should.exist;
-              mapping.properties.should.be.eql(createMapping.properties);
-
-              return mappingAggregate.handle(getMapping);
-            })
-            .then((mappingState) => {
-              mappingState.should.exist;
-              mappingState.stateName.should.be.equal(Active.STATE_NAME);
-
-              return mappingAggregate.handle(deleteMapping);
-            })
-            .then((mappingState) => {
-              mappingState.should.exist;
-              mappingState.stateName.should.be.equal(Deleted.STATE_NAME);
-              return;
-            });
-        })
-        .then(done)
-        .catch(done);
-    });
-
-    it("should reject a delete command on a new mapping", (done) => {
-      const aggregateId = TestDataGenerator.randomUUID();
-      const getMapping = TestDataGenerator.randomGetMapping();
-      const deleteEntity = TestDataGenerator.randomDeleteMapping();
-
-      MappingAggregate.build(aggregateId)
-        .then((mappingAggregate) => {
-          mappingAggregate.handle(getMapping).then((mappingState) => {
+        return mappingAggregate
+          .create(mappingName, mappingProperties)
+          .then((mappingState) => {
             mappingState.should.exist;
-            mappingState.stateName.should.be.equal(New.STATE_NAME);
+            mappingState.stateName.should.be.equal(MappingStateName.Active);
 
-            mappingAggregate.handle(deleteEntity).should.be.rejected;
-            done();
+            const mapping = mappingState.payload;
+
+            mapping.uuid.should.exist;
+            mapping.uuid.should.be.equal(aggregateId);
+            mapping.properties.should.exist;
+            mapping.properties.should.be.eql(mappingProperties);
+
+            // double check it is active
+            mappingAggregate.get().stateName.should.equal(MappingStateName.Active);
+
+            return mappingAggregate.delete();
+          })
+          .then((mappingState) => {
+            mappingState.should.exist;
+            mappingState.stateName.should.be.equal(MappingStateName.Deleted);
           });
-        })
-        .catch(done);
+      });
     });
 
-    it("should rehydrate from data store", (done) => {
+    it("should reject a delete command on a new mapping", () => {
       const aggregateId = TestDataGenerator.randomUUID();
-      const createMapping = TestDataGenerator.randomCreateMapping();
-      const setMappingProperties = TestDataGenerator.randomSetMappingProperties();
-      const getMapping = TestDataGenerator.randomGetMapping();
-      const deleteMapping = TestDataGenerator.randomDeleteMapping();
 
-      MappingAggregate.build(aggregateId)
-        .then((mappingAggregate) => {
-          mappingAggregate
-            .handle(createMapping)
-            .then((mappingState) => {
-              mappingState.should.exist;
-              mappingState.stateName.should.be.equal(Active.STATE_NAME);
+      return MappingAggregate.build(aggregateId).then((mappingAggregate) => {
+        const initialState = mappingAggregate.get();
+        initialState.should.exist;
+        initialState.stateName.should.be.equal(MappingStateName.New);
 
-              return mappingAggregate.handle(setMappingProperties);
-            })
-            .then((mappingState) => {
-              mappingState.should.exist;
-              mappingState.stateName.should.be.equal(Active.STATE_NAME);
-
-              // create new aggregate that should rehydrate
-              return MappingAggregate.build(aggregateId);
-            })
-            .then((mappingAggregate2) => {
-              chai.should().exist(mappingAggregate2);
-              return mappingAggregate2.handle(getMapping);
-            })
-            .then((mappingState) => {
-              mappingState.should.exist;
-              mappingState.stateName.should.be.equal(Active.STATE_NAME);
-
-              // validate rehydrated mapping
-              const mapping = (mappingState as Active<Mapping>).payload;
-              mapping.uuid.should.exist;
-              mapping.uuid.should.be.equal(aggregateId);
-              mapping.properties.should.exist;
-              mapping.properties.should.be.eql(setMappingProperties.properties);
-
-              return;
-            });
-        })
-        .then(done)
-        .catch(done);
+        return mappingAggregate.delete().should.be.rejected;
+      });
     });
 
-    it("should reject a command that is not supported", (done) => {
+    it("should rehydrate from data store", () => {
       const aggregateId = TestDataGenerator.randomUUID();
-      const getMapping = TestDataGenerator.randomGetMapping();
-      const notSupportedCommand = TestDataGenerator.randomNotSupportedCommand();
+      const mappingName = TestDataGenerator.randomMappingName();
+      const mappingProperties = TestDataGenerator.randomMappingProperties();
+      const mappingProperties2 = TestDataGenerator.randomMappingProperties();
 
-      MappingAggregate.build(aggregateId)
-        .then((mappingAggregate) => {
-          mappingAggregate.handle(getMapping).then((mappingState) => {
-            mappingAggregate.handle(notSupportedCommand).should.be.rejected;
-            done();
+      return MappingAggregate.build(aggregateId).then((mappingAggregate) => {
+        return mappingAggregate
+          .create(mappingName, mappingProperties)
+          .then((mappingState) => {
+            mappingState.should.exist;
+            mappingState.stateName.should.be.equal(MappingStateName.Active);
+
+            return mappingAggregate.setProperties(mappingProperties2);
+          })
+          .then((mappingState) => {
+            mappingState.should.exist;
+            mappingState.stateName.should.be.equal(MappingStateName.Active);
+
+            // create new aggregate that should rehydrate
+            return MappingAggregate.build(aggregateId);
+          })
+          .then((mappingAggregate2) => {
+            chai.should().exist(mappingAggregate2);
+
+            // rehydrated mapping must be active
+            const mappingState = mappingAggregate2.get();
+            mappingState.stateName.should.be.equal(MappingStateName.Active);
+
+            // validate rehydrated mapping
+            const mapping = mappingState.payload;
+            mapping.uuid.should.exist;
+            mapping.uuid.should.be.equal(aggregateId);
+            mapping.properties.should.exist;
+            mapping.properties.should.be.eql(mappingProperties2);
           });
-        })
-        .catch(done);
+      });
     });
   });
 }

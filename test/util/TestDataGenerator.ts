@@ -1,6 +1,6 @@
 // external dependencies
 import * as faker from "faker";
-import { AggregateConfig, Command } from "eventum-sdk";
+import { AggregateConfig } from "eventum-sdk";
 
 // models
 import {
@@ -15,16 +15,6 @@ import { Audit } from "../../src/model/Audit";
 
 // context
 import { AuthenticationContext, ExecutionContext } from "../../src/service/ExecutionContext";
-
-// messages
-import { CreateMapping } from "../../src/message/command/CreateMapping";
-import { CreateNode } from "../../src/message/command/CreateNode";
-import { DeleteMapping } from "../../src/message/command/DeleteMapping";
-import { DeleteNode } from "../../src/message/command/DeleteNode";
-import { GetMapping } from "../../src/message/command/GetMapping";
-import { GetNode } from "../../src/message/command/GetNode";
-import { SetMappingProperties } from "../../src/message/command/SetMappingProperties";
-import { SetNodeProperties } from "../../src/message/command/SetNodeProperties";
 
 export class TestDataGenerator {
   public static fullMapping(): Mapping {
@@ -265,45 +255,6 @@ export class TestDataGenerator {
 
   public static randomUUID(): string {
     return faker.random.uuid();
-  }
-
-  public static randomCreateMapping(mappingName?: string): CreateMapping {
-    return new CreateMapping(mappingName || this.randomMappingName(), this.randomMappingProperties());
-  }
-
-  public static randomCreateNode(mappingName?: string): CreateNode {
-    return new CreateNode(mappingName || this.randomMappingName(), this.randomNodeProperties());
-  }
-
-  public static randomDeleteMapping(): DeleteMapping {
-    return new DeleteMapping();
-  }
-
-  public static randomDeleteNode(): DeleteNode {
-    return new DeleteNode();
-  }
-
-  public static randomGetMapping(): GetMapping {
-    return new GetMapping();
-  }
-
-  public static randomGetNode(): GetNode {
-    return new GetNode();
-  }
-
-  public static randomSetMappingProperties(): SetMappingProperties {
-    return new SetMappingProperties(this.randomMappingProperties());
-  }
-
-  public static randomSetNodeProperties(): SetNodeProperties {
-    return new SetNodeProperties(this.randomNodeProperties());
-  }
-
-  public static randomNotSupportedCommand(): Command {
-    return {
-      messageType: "Command",
-      commandType: "NotSupportedCommand"
-    };
   }
 
   public static randomAuthenticationContext(): AuthenticationContext {

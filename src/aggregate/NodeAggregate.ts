@@ -1,41 +1,28 @@
 // eventum dependencies
-import { AggregateConfig, New, Active, Deleted, Snapshot, AggregateFSM } from "eventum-sdk";
+import { AggregateConfig, Snapshot, AggregateFSM, State, Event } from "eventum-sdk";
 
 // models
-import { Node, NodeBuilder } from "../model/Node";
+import { Nullable } from "../types/Nullable";
+import { Node, NodeBuilder, NodeProperties } from "../model/Node";
 
-// node commands
-import { GetNode } from "../message/command/GetNode";
-import { CreateNode } from "../message/command/CreateNode";
-import { SetNodeProperties } from "../message/command/SetNodeProperties";
-import { DeleteNode } from "../message/command/DeleteNode";
+// maping events
+import { NodeStateName } from "./NodeStateName";
+import { NodeEventType } from "../event/NodeEventType";
+import { NodeCreatedV1Payload, NodePropertiesUpdatedV1Payload } from "../event/NodeEventPayload";
 
-// node events
-import { NodeCreatedV1 } from "../message/event/NodeCreatedV1";
-import { NodePropertiesUpdatedV1 } from "../message/event/NodePropertiesUpdatedV1";
-import { NodeDeletedV1 } from "../message/event/NodeDeletedV1";
-
-/**
- * Node commands.
- */
-export type NodeCommand = GetNode | CreateNode | DeleteNode | SetNodeProperties;
-
-/**
- * Node events.
- */
-export type NodeEvent = NodeCreatedV1 | NodeDeletedV1 | NodePropertiesUpdatedV1;
-
-/**
- * Node states.
- */
-export type NodeState = New<Node> | Active<Node> | Deleted<Node>;
+export interface INodeAggregate {
+  create(name: string, properties: NodeProperties): Promise<State<Node>>;
+  setProperties(properties: NodeProperties): Promise<State<Node>>;
+  delete(): Promise<State<Node>>;
+}
 
 /**
  * FSM aggregate to handle {@link NodeCommand}.
  */
-export class NodeAggregate extends AggregateFSM<Node, NodeState, NodeCommand, NodeEvent> {
-  private readonly uuid: string;
-  private currentState: NodeState = new New();
+export class NodeAggregate extends AggregateFSM<Node, State<Node>> implements INodeAggregate {
+  private currentState: State<Node> = {
+    stateName: NodeStateName.New
+  };
 
   /**
    * Constructor.
@@ -59,87 +46,63 @@ export class NodeAggregate extends AggregateFSM<Node, NodeState, NodeCommand, No
   }
 
   /**
-   * Handle a {@link NodeCommand}.
-   *
-   * @param command Node command
-   * @returns A promise with the state after running the command
+   * Get current node.
    */
-  public handle(command: NodeCommand): Promise<NodeState> {
-    switch (command.commandType) {
-      case GetNode.NAME:
-        return this.handleGetNode(command as GetNode);
-      case CreateNode.NAME:
-        return this.handleCreateNode(command as CreateNode);
-      case SetNodeProperties.NAME:
-        return this.handleSetNodeProperties(command as SetNodeProperties);
-      case DeleteNode.NAME:
-        return this.handleDeleteNode(command as DeleteNode);
-      default:
-        return Promise.reject(`Command ${command.commandType} not supported by NodeAggregate.`);
-    }
-  }
-
-  /**
-   * Get current state.
-   */
-  protected getEntity(): NodeState {
+  public get(): State<Node> {
     return this.currentState;
   }
 
   /**
-   * Handle a {@link GetNode} command.
-   *
-   * @param command Create node command
-   * @returns A promise with the state after running the command
-   */
-  private handleGetNode(command: GetNode): Promise<NodeState> {
-    return Promise.resolve(this.getEntity());
-  }
-
-  /**
-   * Handle a {@link CreateNode} command.
+   * Create a node.
    *
    * Invariants:
-   * - Entity must not exist (state = {@link NewNode})
+   * - Node must not exist.
    *
    * Events:
-   * - {@link NodeCreatedV1}
+   * - NodeCreated
    *
-   * @param command Create node command
-   * @returns A promise with the state after running the command
+   * @param name Node name
+   * @param properties Node properties
+   * @returns A promise with the node state
    */
-  private handleCreateNode(command: CreateNode): Promise<NodeState> {
+  public create(name: string, properties: NodeProperties): Promise<State<Node>> {
     switch (this.currentState.stateName) {
-      case New.STATE_NAME:
-        const event = new NodeCreatedV1(this.aggregateId, this.getNextSequence(), {
-          mappingName: command.mappingName,
-          properties: command.properties
+      case NodeStateName.New:
+        return this.emit({
+          aggregateId: this.aggregateId,
+          eventType: NodeEventType.CreatedV1,
+          payload: {
+            name,
+            properties
+          }
         });
-        return this.save(event);
       default:
         return Promise.reject(`Node ${this.aggregateId} already exists.`);
     }
   }
 
   /**
-   * Handle a {@link SetNodeProperties} command.
+   * Set node properties.
    *
    * Invariants:
-   * - Entity must exist and not be deleted (state = {@link Active})
+   * - Entity must exist and not be deleted.
    *
    * Events:
-   * - {@link NodePropertiesUpdatedV1}
+   * - NodePropertiesUpdated
    *
-   * @param command Set node properties command
-   * @returns A promise with the state after running the command
+   * @param properties Node properties
+   * @returns A promise with the node state
    */
-  private handleSetNodeProperties(command: SetNodeProperties): Promise<NodeState> {
+  public setProperties(properties: NodeProperties): Promise<State<Node>> {
     switch (this.currentState.stateName) {
-      case Active.STATE_NAME:
-        const event = new NodePropertiesUpdatedV1(this.aggregateId, this.getNextSequence(), {
-          properties: command.properties
+      case NodeStateName.Active:
+        return this.emit({
+          aggregateId: this.aggregateId,
+          eventType: NodeEventType.PropertiesUpdatedV1,
+          payload: {
+            properties
+          }
         });
-        return this.save(event);
       default:
         return Promise.reject(
           `Cannot set properties on node ${this.aggregateId}. It doesn't exist or it's been deleted.`
@@ -148,24 +111,23 @@ export class NodeAggregate extends AggregateFSM<Node, NodeState, NodeCommand, No
   }
 
   /**
-   * Handle a {@link DeleteNode} command.
+   * Delete a node.
    *
    * Invariants:
-   * - Entity must exist and not be deleted (state = {@link Active}).
-   * - If the entity does not exist or it is already deleted, this command has no effect on the state.
+   * - Entity must exist and not be deleted.
    *
    * Events:
-   * - {@link NodeDeletedV1}
+   * - NodeDeleted
    *
-   * @param command Delete node property
-   * @returns A promise with the state after running the command
+   * @returns A promise with the node state
    */
-  private handleDeleteNode(command: DeleteNode): Promise<NodeState> {
+  public delete(): Promise<State<Node>> {
     switch (this.currentState.stateName) {
-      case Active.STATE_NAME:
-        const event = new NodeDeletedV1(this.aggregateId, this.getNextSequence());
-
-        return this.save(event);
+      case NodeStateName.Active:
+        return this.emit({
+          aggregateId: this.aggregateId,
+          eventType: NodeEventType.DeletedV1
+        });
       default:
         return Promise.reject(new Error(`Node ${this.aggregateId} doesn't exist and cannot be deleted`));
     }
@@ -177,75 +139,85 @@ export class NodeAggregate extends AggregateFSM<Node, NodeState, NodeCommand, No
    * Actions:
    * - Replace current state with snapshotted state
    *
-   * @param snapshot Node state snapshot
+   * @param snapshot Snapshot
    */
-  protected aggregateSnapshot(snapshot: Snapshot<NodeState>) {
-    this.currentState = snapshot.payload;
+  protected aggregateSnapshot(snapshot: Snapshot) {
+    this.currentState = snapshot.payload as State<Node>;
   }
 
   /**
-   * Aggregate {@link NodeEvent} to the current state.
+   * Aggregate {@link Event} to the current state.
    *
-   * @param event Node event
+   * @param event Event
    */
-  protected aggregateEvent(event: NodeEvent) {
+  protected aggregateEvent(event: Event) {
     switch (event.eventType) {
-      case NodeCreatedV1.NAME:
-        this.aggregateNodeCreatedV1(event as NodeCreatedV1);
+      case NodeEventType.CreatedV1:
+        this.aggregateNodeCreatedV1(event);
         break;
-      case NodePropertiesUpdatedV1.NAME:
-        this.aggregateNodePropertiesUpdatedV1(event as NodePropertiesUpdatedV1);
+      case NodeEventType.PropertiesUpdatedV1:
+        this.aggregateNodePropertiesUpdatedV1(event);
         break;
-      case NodeDeletedV1.NAME:
-        this.aggregateNodeDeletedV1(event as NodeDeletedV1);
+      case NodeEventType.DeletedV1:
+        this.aggregateNodeDeletedV1(event);
         break;
       default:
-        return Promise.reject(new Error(`Event ${event.eventType} not supported by NodeAggregate.`));
+        throw new Error(`Event ${event.eventType} not supported by NodeAggregate.`);
     }
   }
 
   /**
-   * Aggregate {@link NodeCreatedV1} to the current state.
+   * Aggregate NodeCreated event to the current state.
    *
    * Actions:
    * - Create a new node entity.
-   * - Move to state {@link Active}.
+   * - Move to state {@link NodeStateName.Active}.
    *
    * @param event Node created event V1
    */
-  private aggregateNodeCreatedV1(event: NodeCreatedV1) {
+  private aggregateNodeCreatedV1(event: Event) {
+    const payload = event.payload as NodeCreatedV1Payload;
     const node = new NodeBuilder()
       .uuid(event.aggregateId)
-      .mapping(event.payload.mappingName)
-      .properties(event.payload.properties)
+      .mapping(payload.mappingName)
+      .properties(payload.properties)
       .build();
-    this.currentState = new Active(node);
+    this.currentState = {
+      stateName: NodeStateName.Active,
+      payload: node
+    };
   }
 
   /**
-   * Aggregate {@link NodePropertiesUpdatedV1} to the current state.
+   * Aggregate NodePropertiesUpdated event to the current state.
    *
    * Actions:
    * - Set properties to the existing node.
    *
    * @param event Node properties update event V1
    */
-  private aggregateNodePropertiesUpdatedV1(event: NodePropertiesUpdatedV1) {
-    const currentNode = (this.currentState as Active<Node>).payload;
-    const node = new NodeBuilder(currentNode).properties(event.payload.properties).build();
-    this.currentState = new Active(node);
+  private aggregateNodePropertiesUpdatedV1(event: Event) {
+    const currentNode = this.currentState.payload;
+    const payload = event.payload as NodePropertiesUpdatedV1Payload;
+    const node = new NodeBuilder(currentNode).properties(payload.properties).build();
+    this.currentState = {
+      stateName: NodeStateName.Active,
+      payload: node
+    };
   }
 
   /**
-   * Aggregate {@link NodeDeletedV1} to the current state.
+   * Aggregate NodeDeleted event to the current state.
    *
    * Actions:
-   * - Move entity to state {@link Deleted}.
+   * - Move to state {@link NodeStateName.Deleted}.
    *
    * @param event Node deleted event V1
    */
-  private aggregateNodeDeletedV1(event: NodeDeletedV1) {
-    const node = (this.currentState as Active<Node>).payload;
-    this.currentState = new Deleted(node);
+  private aggregateNodeDeletedV1(event: Event) {
+    const node = this.currentState.payload;
+    this.currentState = {
+      stateName: NodeStateName.Deleted
+    };
   }
 }

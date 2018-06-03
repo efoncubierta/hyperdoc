@@ -20,7 +20,7 @@ const materializer = new ContentModelMaterializer();
 export const handler: Handler = (event: DynamoDBStreamEvent, context: Context, callback: Callback) => {
   const promises = Promise.resolve();
   event.Records.map((record) => {
-    const e = DynamoDB.Converter.unmarshall(record.dynamodb.NewImage) as Event<any>;
+    const e = DynamoDB.Converter.unmarshall(record.dynamodb.NewImage) as Event;
 
     promises.then(() => {
       return materializer.handle(e);

@@ -1,6 +1,5 @@
 // external dependencies
 import * as UUID from "uuid";
-import { Active } from "eventum-sdk";
 
 // models
 import { Audit } from "../model/Audit";
@@ -14,14 +13,10 @@ import { NodeSchema, NodePropertiesSchema } from "../validation/schemas/NodeSche
 // aggregate
 import { NodeAggregate } from "../aggregate/NodeAggregate";
 
-// node messages
-import { GetNode } from "../message/command/GetNode";
-import { CreateNode } from "../message/command/CreateNode";
-import { SetNodeProperties } from "../message/command/SetNodeProperties";
-
 import { ExecutionContext } from "./ExecutionContext";
 import { StoreFactory } from "../store/StoreFactory";
 import { MappingService } from "./MappingService";
+import { NodeStateName } from "../aggregate/NodeStateName";
 
 /**
  * Service to manage nodes from the user space.
@@ -63,13 +58,13 @@ export class NodeService {
       })
       .then((aggregate) => {
         // node aggregate checks whether the node already exist before executing the CreateNode command
-        return aggregate.handle(new CreateNode(mappingName, properties));
+        return aggregate.create(mappingName, properties);
       })
       .then((state) => {
         // if aggregate is active, then return the node. Fail otherwise
         switch (state.stateName) {
-          case Active.STATE_NAME:
-            return (state as Active<Node>).payload;
+          case NodeStateName.Active:
+            return state.payload;
           default:
             throw new Error(`Node ${uuid} is in an inconsistent state`);
         }
@@ -107,13 +102,13 @@ export class NodeService {
       })
       .then((aggregate) => {
         // mapping aggregate check whether the mapping exist before executing the SetNodeProperties command
-        return aggregate.handle(new SetNodeProperties(properties));
+        return aggregate.setProperties(properties);
       })
       .then((state) => {
         // if aggregate is active, then return the mapping. Otherwise return null
         switch (state.stateName) {
-          case Active.STATE_NAME:
-            return (state as Active<Node>).payload;
+          case NodeStateName.Active:
+            return state.payload;
           default:
             throw new Error(`Mapping ${uuid} is in an inconsistent state`);
         }
