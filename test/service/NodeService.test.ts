@@ -44,7 +44,7 @@ function nodeServiceTests() {
           chai.should().exist(node);
 
           // check UUID
-          node.uuid.should.exist;
+          node.id.should.exist;
 
           // check node
           node.mappingName.should.equal(mappingName);
@@ -52,7 +52,7 @@ function nodeServiceTests() {
           // check properties
           node.properties.should.eql(nodeProperties);
 
-          return NodeService.get(testExecutionContext, node.uuid);
+          return NodeService.get(testExecutionContext, node.id);
         })
         .then((nodeOpt) => {
           chai.should().exist(nodeOpt);
@@ -61,7 +61,7 @@ function nodeServiceTests() {
           chai.should().exist(n);
 
           // check UUID
-          n.uuid.should.exist;
+          n.id.should.exist;
 
           // check node
           n.mappingName.should.equal(mappingName);
@@ -69,13 +69,13 @@ function nodeServiceTests() {
           // check properties
           n.properties.should.eql(nodeProperties);
 
-          return NodeService.setProperties(testExecutionContext, n.uuid, nodePropertiesUpdate);
+          return NodeService.setProperties(testExecutionContext, n.id, nodePropertiesUpdate);
         })
         .then((node) => {
           chai.should().exist(node);
 
           // check UUID
-          node.uuid.should.exist;
+          node.id.should.exist;
 
           // check node
           node.mappingName.should.equal(mappingName);
