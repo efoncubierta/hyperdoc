@@ -30,6 +30,7 @@ export class ContentModelMaterializer extends Materializer {
       case NodeEventType.DeletedV1:
         return this.handleNodeDeletedV1(event);
       default:
+        return Promise.resolve();
       // todo do nothing
     }
   }
@@ -37,7 +38,7 @@ export class ContentModelMaterializer extends Materializer {
   private handleMappingCreatedV1(event: Event): Promise<void> {
     const payload = event.payload as MappingCreatedV1Payload;
     const mapping: Mapping = {
-      uuid: event.aggregateId,
+      id: event.aggregateId,
       name: payload.name,
       properties: payload.properties
     };
@@ -74,7 +75,7 @@ export class ContentModelMaterializer extends Materializer {
   private handleNodeCreatedV1(event: Event): Promise<void> {
     const payload = event.payload as NodeCreatedV1Payload;
     const node: Node = {
-      uuid: event.aggregateId,
+      id: event.aggregateId,
       mappingName: payload.mappingName,
       properties: payload.properties
     };

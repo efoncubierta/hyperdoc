@@ -40,8 +40,8 @@ function mappingAggregateTests() {
 
             const mapping = mappingState.payload;
 
-            mapping.uuid.should.exist;
-            mapping.uuid.should.be.equal(aggregateId);
+            mapping.id.should.exist;
+            mapping.id.should.be.equal(aggregateId);
             mapping.properties.should.exist;
             mapping.properties.should.be.eql(mappingProperties);
 
@@ -100,8 +100,8 @@ function mappingAggregateTests() {
 
             // validate rehydrated mapping
             const mapping = mappingState.payload;
-            mapping.uuid.should.exist;
-            mapping.uuid.should.be.equal(aggregateId);
+            mapping.id.should.exist;
+            mapping.id.should.be.equal(aggregateId);
             mapping.properties.should.exist;
             mapping.properties.should.be.eql(mappingProperties2);
           });

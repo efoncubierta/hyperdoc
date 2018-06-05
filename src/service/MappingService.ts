@@ -84,26 +84,28 @@ export class MappingService {
     const mappingId: MappingId = UUID.v1();
 
     return MappingService.getByName(context, mappingName)
-      .then((mapping) => {
-        // check if there is a mapping with the same name already exist
-        if (mapping) {
-          throw new Error(`Mapping ${mappingName} already exists`);
-        }
-
-        // get the aggregate for the mapping
-        return MappingService.getAggregate(mappingId);
+      .then((mappingOpt) => {
+        return mappingOpt.foldL(
+          () => {
+            // get the aggregate for the mapping
+            return MappingService.getAggregate(mappingId);
+          },
+          (mapping) => {
+            // throw an error if a mapping with the same name already exists
+            throw new Error(`Mapping ${mappingName} already exists`);
+          }
+        );
       })
-      .then((aggregate) => {
+      .then((mappingAggregate) => {
         // aggregate checks whether the mapping already exist before creating it
-        return aggregate.create(mappingName, mappingProperties);
+        return mappingAggregate.create(mappingName, mappingProperties);
       })
-      .then((state) => {
-        // if mapping is active, then return it. Fail otherwise
-        switch (state.stateName) {
-          case MappingStateName.Active:
-            return state.payload;
-          default:
-            throw new Error(`Mapping ${mappingId} is in an inconsistent state`);
+      .then((mappingState) => {
+        // if state is active and has a payload, then return it. Fail otherwise
+        if (mappingState.stateName === MappingStateName.Active && mappingState.payload) {
+          return mappingState.payload;
+        } else {
+          throw new Error(`Mapping ${mappingId} is in an inconsistent state`);
         }
       });
   }
@@ -127,17 +129,16 @@ export class MappingService {
 
     // get the mapping aggregate
     return MappingService.getAggregate(mappingId)
-      .then((aggregate) => {
+      .then((mappingAggregate) => {
         // mapping aggregate checks whether the mapping exist before setting the properties
-        return aggregate.setProperties(mappingProperties);
+        return mappingAggregate.setProperties(mappingProperties);
       })
-      .then((state) => {
-        // if mapping is active, then return it. Otherwise return null
-        switch (state.stateName) {
-          case MappingStateName.Active:
-            return state.payload;
-          default:
-            throw new Error(`Mapping ${mappingId} is in an inconsistent state`);
+      .then((mappingState) => {
+        // if state is active and has a payload, then return it. Fail otherwise
+        if (mappingState.stateName === MappingStateName.Active && mappingState.payload) {
+          return mappingState.payload;
+        } else {
+          throw new Error(`Mapping ${mappingId} is in an inconsistent state`);
         }
       });
   }

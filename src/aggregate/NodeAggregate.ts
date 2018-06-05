@@ -178,7 +178,7 @@ export class NodeAggregate extends Aggregate<State<Node>> implements INodeAggreg
     const payload = event.payload as NodeCreatedV1Payload;
 
     const node: Node = {
-      uuid: event.aggregateId,
+      id: event.aggregateId,
       mappingName: payload.mappingName,
       properties: payload.properties
     };
@@ -200,6 +200,12 @@ export class NodeAggregate extends Aggregate<State<Node>> implements INodeAggreg
   private aggregateNodePropertiesUpdatedV1(event: Event) {
     const currentNode = this.currentState.payload;
     const payload = event.payload as NodePropertiesUpdatedV1Payload;
+
+    if (!currentNode) {
+      throw new Error(
+        `State payload is missing in node ${event.aggregateId}. NodePropertiesUpdatedV1 cannot be aggregated.`
+      );
+    }
 
     const node: Node = {
       ...currentNode,

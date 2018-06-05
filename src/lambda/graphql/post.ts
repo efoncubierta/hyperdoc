@@ -26,7 +26,7 @@ const executionContext: ExecutionContext = {
  */
 export const handler: Handler = (event: APIGatewayEvent, context: Context, callback: Callback) => {
   // TODO make CORS options filter configurable
-  const callbackFilter = (error, output) => {
+  const callbackFilter = (error: Error | undefined | null, output: any) => {
     output.headers["Access-Control-Allow-Origin"] = "*";
     callback(error, output);
   };

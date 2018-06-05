@@ -57,7 +57,8 @@ export class NodeService {
     return MappingService.getByName(context, mappingName)
       .then((mappingOpt) => {
         // validate properties
-        NodeService.validateNodeProperties(nodeProperties, mappingOpt.getOrElse(null));
+        const mapping = mappingOpt.fold(undefined, (m) => m);
+        NodeService.validateNodeProperties(nodeProperties, mapping);
 
         // get the aggregate for the new node
         return NodeService.getAggregate(nodeId);
@@ -66,13 +67,12 @@ export class NodeService {
         // node aggregate checks whether the node already exist before creating it
         return aggregate.create(mappingName, nodeProperties);
       })
-      .then((state) => {
-        // if aggrnodeegate is active, then return it. Fail otherwise
-        switch (state.stateName) {
-          case NodeStateName.Active:
-            return state.payload;
-          default:
-            throw new Error(`Node ${nodeId} is in an inconsistent state`);
+      .then((nodeState) => {
+        // if state is active and has a payload, then return it. Fail otherwise
+        if (nodeState.stateName === NodeStateName.Active && nodeState.payload) {
+          return nodeState.payload;
+        } else {
+          throw new Error(`Node ${nodeId} is in an inconsistent state`);
         }
       });
   }
@@ -109,7 +109,8 @@ export class NodeService {
       })
       .then((mappingOpt) => {
         // validate properties
-        NodeService.validateNodeProperties(nodeProperties, mappingOpt.getOrElse(null));
+        const mapping = mappingOpt.fold(undefined, (m) => m);
+        NodeService.validateNodeProperties(nodeProperties, mapping);
 
         // get node aggregate
         return NodeService.getAggregate(nodeId);
@@ -118,13 +119,12 @@ export class NodeService {
         // mapping aggregate check whether the mapping exist before executing the SetNodeProperties command
         return aggregate.setProperties(nodeProperties);
       })
-      .then((state) => {
-        // if node is active, then return it. Fail otherwise
-        switch (state.stateName) {
-          case NodeStateName.Active:
-            return state.payload;
-          default:
-            throw new Error(`Node ${nodeId} is in an inconsistent state`);
+      .then((nodeState) => {
+        // if state is active and has a payload, then return it. Fail otherwise
+        if (nodeState.stateName === NodeStateName.Active && nodeState.payload) {
+          return nodeState.payload;
+        } else {
+          throw new Error(`Node ${nodeId} is in an inconsistent state`);
         }
       });
   }
@@ -137,7 +137,7 @@ export class NodeService {
    *
    * @throws An error if the validation doesn't pass
    */
-  private static validateNodeProperties(nodeProperties: NodeProperties, mapping: Mapping) {
+  private static validateNodeProperties(nodeProperties: NodeProperties, mapping?: Mapping) {
     // get a validator for the mapping or default node validator if new mapping
     const validator = mapping ? NodeValidator.getValidatorFromMapping(mapping) : NodeValidator.getDefaultValidator();
 

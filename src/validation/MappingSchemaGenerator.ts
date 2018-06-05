@@ -13,8 +13,12 @@ import {
 // model schemas
 import { NodePropertiesSchema } from "../validation/schemas/NodeSchema";
 
-interface IPropertiesOutput {
-  properties: {};
+interface SchemaProperties {
+  [x: string]: Schema;
+}
+
+interface PropertiesOutput {
+  properties: SchemaProperties;
   required: string[];
 }
 
@@ -111,7 +115,10 @@ export class MappingSchemaGenerator {
   private static processMappingProperty(propertyName: string, property: MappingProperty): Schema {
     switch (property.type) {
       case MappingPropertyType.Nested:
-        return this.wrapPropertySchema(this.processMappingNestedProperty(property), property.multiple);
+        return this.wrapPropertySchema(
+          this.processMappingNestedProperty(property as MappingNestedProperty),
+          property.multiple
+        );
       default:
         return this.wrapPropertySchema(this.processMappingScalarProperty(property), property.multiple);
     }
@@ -121,11 +128,11 @@ export class MappingSchemaGenerator {
    * Process a dictionary of mapping properties.
    *
    * @param {MappingProperties} properties - Mapping properties dictionary
-   * @returns {IPropertiesOutput} JSON schema representation of the mapping properties and list of required properties
+   * @returns {PropertiesOutput} JSON schema representation of the mapping properties and list of required properties
    */
-  private static processMappingProperties(properties: MappingProperties): IPropertiesOutput {
-    const schemaProperties = {};
-    const requiredProperties = [];
+  private static processMappingProperties(properties: MappingProperties): PropertiesOutput {
+    const schemaProperties: SchemaProperties = {};
+    const requiredProperties: string[] = [];
 
     Object.keys(properties).forEach((propertyName) => {
       schemaProperties[propertyName] = this.processMappingProperty(propertyName, properties[propertyName]);

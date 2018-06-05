@@ -4,7 +4,7 @@ import { Audit } from "./Audit";
  * Node.
  */
 export interface Node {
-  uuid: NodeId;
+  id: NodeId;
   mappingName: string;
   properties: NodeProperties;
   // audit: Audit;
@@ -18,7 +18,7 @@ export type NodeId = string;
 /**
  * Node key.
  */
-export type NodeKey = Pick<Node, "uuid">;
+export type NodeKey = Pick<Node, "id">;
 
 /**
  * Node properties.

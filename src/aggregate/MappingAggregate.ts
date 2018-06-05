@@ -177,7 +177,7 @@ export class MappingAggregate extends Aggregate<State<Mapping>> implements IMapp
   private aggregateMappingCreatedV1(event: Event) {
     const payload = event.payload as MappingCreatedV1Payload;
     const mapping: Mapping = {
-      uuid: event.aggregateId,
+      id: event.aggregateId,
       name: payload.name,
       properties: payload.properties
     };
@@ -199,6 +199,12 @@ export class MappingAggregate extends Aggregate<State<Mapping>> implements IMapp
   private aggregateMappingPropertiesUpdatedV1(event: Event) {
     const currentMapping = this.currentState.payload;
     const payload = event.payload as MappingPropertiesUpdatedV1Payload;
+
+    if (!currentMapping) {
+      throw new Error(
+        `State payload is missing in node ${event.aggregateId}. MappingPropertiesUpdatedV1 cannot be aggregated.`
+      );
+    }
 
     const mapping: Mapping = {
       ...currentMapping,

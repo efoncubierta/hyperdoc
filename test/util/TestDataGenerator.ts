@@ -19,7 +19,7 @@ import { AuthenticationContext, ExecutionContext } from "../../src/service/Execu
 export class TestDataGenerator {
   public static fullMapping(): Mapping {
     return {
-      uuid: faker.random.uuid(),
+      id: this.randomUUID(),
       name: faker.random.word(),
       properties: this.fullMappingProperties()
     };
@@ -27,7 +27,7 @@ export class TestDataGenerator {
 
   public static randomMapping(): Mapping {
     return {
-      uuid: faker.random.uuid(),
+      id: this.randomUUID(),
       name: faker.random.word(),
       properties: this.randomMappingProperties()
     };
@@ -163,7 +163,7 @@ export class TestDataGenerator {
 
   public static randomFullNode(): Node {
     return {
-      uuid: this.randomUUID(),
+      id: this.randomUUID(),
       mappingName: this.randomMappingName(),
       properties: this.randomFullNodeProperties()
     };
@@ -171,7 +171,7 @@ export class TestDataGenerator {
 
   public static randomNode(): Node {
     return {
-      uuid: this.randomUUID(),
+      id: this.randomUUID(),
       mappingName: this.randomMappingName(),
       properties: this.randomNodeProperties()
     };

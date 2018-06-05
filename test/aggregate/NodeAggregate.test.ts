@@ -40,8 +40,8 @@ function nodeAggregateTests() {
 
             const node = nodeState.payload;
 
-            node.uuid.should.exist;
-            node.uuid.should.be.equal(aggregateId);
+            node.id.should.exist;
+            node.id.should.be.equal(aggregateId);
             node.properties.should.exist;
             node.properties.should.be.eql(nodeProperties);
 
@@ -100,8 +100,8 @@ function nodeAggregateTests() {
 
             // validate rehydrated node
             const node = nodeState.payload;
-            node.uuid.should.exist;
-            node.uuid.should.be.equal(aggregateId);
+            node.id.should.exist;
+            node.id.should.be.equal(aggregateId);
             node.properties.should.exist;
             node.properties.should.be.eql(nodeProperties2);
           });

@@ -1,5 +1,33 @@
 import { Schema } from "jsonschema";
 
+export const NodeSchema: Schema = {
+  id: "/Node",
+  type: "object",
+  properties: {
+    id: {
+      type: "string"
+    },
+    mappingName: {
+      type: "string"
+    },
+    properties: {
+      $ref: "/NodeProperties"
+    }
+    // audit: {
+    //   $ref: "/Audit"
+    // }
+  },
+  required: ["id", "mappingName", "properties"]
+};
+
+export const NodePropertiesSchema: Schema = {
+  id: "/NodeProperties",
+  type: "object",
+  patternProperties: {
+    ".*": { $ref: "/NodeProperty" }
+  }
+};
+
 export const NodePropertySchema: Schema = {
   id: "/NodeProperty",
   oneOf: [
@@ -16,32 +44,4 @@ export const NodePropertySchema: Schema = {
       $ref: "/NodeProperties"
     }
   ]
-};
-
-export const NodePropertiesSchema: Schema = {
-  id: "/NodeProperties",
-  type: "object",
-  patternProperties: {
-    ".*": { $ref: "/NodeProperty" }
-  }
-};
-
-export const NodeSchema: Schema = {
-  id: "/Node",
-  type: "object",
-  properties: {
-    uuid: {
-      type: "string"
-    },
-    mappingName: {
-      type: "string"
-    },
-    properties: {
-      $ref: "/NodeProperties"
-    }
-    // audit: {
-    //   $ref: "/Audit"
-    // }
-  },
-  required: ["uuid", "mappingName", "properties"]
 };

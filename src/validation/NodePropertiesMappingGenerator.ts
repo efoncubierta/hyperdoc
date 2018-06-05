@@ -7,7 +7,8 @@ import {
   MappingNestedProperty,
   MappingId
 } from "../model/Mapping";
-import { NodeProperties, NodePropertyType } from "../model/Node";
+import { NodeProperties, NodePropertyType, NodePropertiesArray } from "../model/Node";
+import { Option, none, some } from "fp-ts/lib/Option";
 
 /**
  * Node to mapping generator.
@@ -22,7 +23,7 @@ export class NodePropertiesMappingGenerator {
    */
   public static toMapping(mappingId: MappingId, mappingName: string, nodeProperties: NodeProperties): Mapping {
     return {
-      uuid: mappingId,
+      id: mappingId,
       name: mappingName,
       properties: this.processNodeProperties(nodeProperties)
     };
@@ -38,11 +39,10 @@ export class NodePropertiesMappingGenerator {
     const mappingProperties: MappingProperties = {};
 
     Object.keys(nodeProperties).forEach((propertyName) => {
-      const mappingProperty = this.processNodeProperty(nodeProperties[propertyName]);
-      // ignore null values
-      if (mappingProperty) {
+      const mappingPropertyOpt = this.processNodeProperty(nodeProperties[propertyName]);
+      mappingPropertyOpt.mapNullable((mappingProperty) => {
         mappingProperties[propertyName] = mappingProperty;
-      }
+      });
     });
 
     return mappingProperties;
@@ -54,16 +54,16 @@ export class NodePropertiesMappingGenerator {
    * @param nodeProperty Node property
    * @returns Mapping property
    */
-  private static processNodeProperty(nodeProperty: NodePropertyType): MappingProperty {
+  private static processNodeProperty(nodeProperty: NodePropertyType): Option<MappingProperty> {
     const mandatory = false;
     const multiple = Array.isArray(nodeProperty);
 
     // if value is an array, then guess the items type
-    const value = multiple ? nodeProperty[0] : nodeProperty;
+    const value = multiple ? (nodeProperty as NodePropertiesArray)[0] : nodeProperty;
 
     // ignore null values
     if (value === null) {
-      return null;
+      return none;
     }
 
     let type = MappingPropertyType.Text;
@@ -78,18 +78,18 @@ export class NodePropertiesMappingGenerator {
     }
 
     if (type === MappingPropertyType.Nested) {
-      return {
+      return some({
         type,
         mandatory,
         multiple,
         properties: this.processNodeProperties(nodeProperty as NodeProperties)
-      } as MappingNestedProperty;
+      } as MappingNestedProperty);
     } else {
-      return {
+      return some({
         type,
         mandatory,
         multiple
-      };
+      });
     }
   }
 

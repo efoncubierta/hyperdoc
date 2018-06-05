@@ -2,10 +2,10 @@
  * Hyperdoc configuration structure.
  */
 export interface HyperdocConfig {
-  provider?: HyperdocProvider;
-  serviceName?: string;
-  stage?: string;
-  aws?: HyperdocAWSConfig;
+  provider: HyperdocProvider;
+  serviceName: string;
+  stage: string;
+  aws: HyperdocAWSConfig;
 }
 
 /**
@@ -20,15 +20,15 @@ export enum HyperdocProvider {
  * Hyperdoc configuration related to AWS.
  */
 export interface HyperdocAWSConfig {
-  dynamodb?: HyperdocAWSDynamoDBConfig;
+  dynamodb: HyperdocAWSDynamoDBConfig;
 }
 
 /**
  * Hyperdoc configuration related to AWS DynamoDB.
  */
 export interface HyperdocAWSDynamoDBConfig {
-  mappings?: HyperdocAWSDynamoDBTable;
-  nodes?: HyperdocAWSDynamoDBTable;
+  mappings: HyperdocAWSDynamoDBTable;
+  nodes: HyperdocAWSDynamoDBTable;
 }
 
 /**

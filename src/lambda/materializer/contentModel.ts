@@ -19,12 +19,16 @@ const materializer = new ContentModelMaterializer();
  */
 export const handler: Handler = (event: DynamoDBStreamEvent, context: Context, callback: Callback) => {
   const promises = Promise.resolve();
-  event.Records.map((record) => {
-    const e = DynamoDB.Converter.unmarshall(record.dynamodb.NewImage) as Event;
+  event.Records.forEach((record) => {
+    if (record.dynamodb && record.dynamodb.NewImage) {
+      const e = DynamoDB.Converter.unmarshall(record.dynamodb.NewImage) as Event;
 
-    promises.then(() => {
-      return materializer.handle(e);
-    });
+      promises.then(() => {
+        return materializer.handle(e);
+      });
+    } else {
+      // TODO handle unsupported record type
+    }
   });
 
   promises

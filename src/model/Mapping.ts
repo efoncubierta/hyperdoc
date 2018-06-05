@@ -2,7 +2,7 @@
  * Mapping type.
  */
 export interface Mapping {
-  uuid: MappingId;
+  id: MappingId;
   name: string;
   properties: MappingProperties;
 }
@@ -15,7 +15,7 @@ export type MappingId = string;
 /**
  * Mapping key.
  */
-export type MappingKey = Pick<Mapping, "uuid">;
+export type MappingKey = Pick<Mapping, "id">;
 
 /**
  * Mappings directionary.
@@ -53,9 +53,9 @@ export interface MappingProperty {
 }
 
 export interface MappingNestedProperty extends MappingProperty {
-  properties?: MappingProperties;
+  properties: MappingProperties;
 }
 
 export interface MappingNodeProperty extends MappingProperty {
-  mapping?: string;
+  mapping: string;
 }
