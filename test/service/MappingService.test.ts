@@ -27,20 +27,19 @@ function mappingServiceTests() {
       AWSMock.restoreMock();
     });
 
-    it("should not get a non-existing mapping", (done) => {
-      MappingService.get(testExecutionContext, TestDataGenerator.randomUUID())
-        .then((mapping) => {
-          chai.should().not.exist(mapping);
-        })
-        .then(done);
+    it("should not get a non-existing mapping", () => {
+      return MappingService.get(testExecutionContext, TestDataGenerator.randomUUID()).then((mappingOpt) => {
+        chai.should().exist(mappingOpt);
+        mappingOpt.isNone().should.be.true;
+      });
     });
 
-    it.skip("should go through the life cycle", (done) => {
+    it.skip("should go through the life cycle", () => {
       const mappingName = TestDataGenerator.randomMappingName();
       const mappingProperties = TestDataGenerator.randomMappingProperties();
       const mappingPropertiesUpdate = TestDataGenerator.randomMappingProperties();
 
-      MappingService.create(testExecutionContext, mappingName, mappingProperties)
+      return MappingService.create(testExecutionContext, mappingName, mappingProperties)
         .then((mapping) => {
           chai.should().exist(mapping);
 
@@ -55,19 +54,23 @@ function mappingServiceTests() {
 
           return MappingService.get(testExecutionContext, mapping.uuid);
         })
-        .then((mapping) => {
-          chai.should().exist(mapping);
+        .then((mappingOpt) => {
+          chai.should().exist(mappingOpt);
+          mappingOpt.isSome().should.be.true;
+
+          const m = mappingOpt.getOrElse(null);
+          chai.should().exist(m);
 
           // check UUID
-          mapping.uuid.should.exist;
+          m.uuid.should.exist;
 
           // check mapping
-          mapping.name.should.equal(mappingName);
+          m.name.should.equal(mappingName);
 
           // check properties
-          mapping.properties.should.eql(mappingProperties);
+          m.properties.should.eql(mappingProperties);
 
-          return MappingService.setProperties(testExecutionContext, mapping.uuid, mappingPropertiesUpdate);
+          return MappingService.setProperties(testExecutionContext, m.uuid, mappingPropertiesUpdate);
         })
         .then((mapping) => {
           chai.should().exist(mapping);
@@ -80,9 +83,7 @@ function mappingServiceTests() {
 
           // check properties
           mapping.properties.should.eql(mappingPropertiesUpdate);
-        })
-        .then(done)
-        .catch(done);
+        });
     });
   });
 }

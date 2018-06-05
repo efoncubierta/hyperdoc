@@ -1,13 +1,15 @@
-// external dependencies
+// External dependencies
 import { DynamoDB } from "aws-sdk";
+import { Option, some, none } from "fp-ts/lib/Option";
 
-// hyperdoc
+// Hyperdoc configuration
 import { Hyperdoc } from "../../Hyperdoc";
 import { HyperdocAWSDynamoDBTable } from "../../config/HyperdocConfig";
 
-// models
+// Hyperdoc models
 import { Mapping } from "../../model/Mapping";
 
+// Hyperdoc stores
 import { MappingStore } from "../MappingStore";
 import { DynamoDBStore } from "./DynamoDBStore";
 
@@ -22,108 +24,78 @@ export class MappingDynamoDBStore extends DynamoDBStore implements MappingStore 
   public list(): Promise<Mapping[]> {
     const documentClient = new DynamoDB.DocumentClient();
 
-    return new Promise((resolve, reject) => {
-      documentClient.scan(
-        {
-          TableName: this.mappingsTableConfig.tableName
-        },
-        (error, result) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result.Items as Mapping[]);
-          }
-        }
-      );
-    });
+    return documentClient
+      .scan({
+        TableName: this.mappingsTableConfig.tableName
+      })
+      .promise()
+      .then((result) => {
+        return result.Items as Mapping[];
+      });
   }
 
-  public get(uuid: string): Promise<Mapping> {
+  public get(uuid: string): Promise<Option<Mapping>> {
     const documentClient = new DynamoDB.DocumentClient();
 
-    return new Promise((resolve, reject) => {
-      documentClient.get(
-        {
-          TableName: this.mappingsTableConfig.tableName,
-          Key: {
-            uuid
-          }
-        },
-        (error, result) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result.Item as Mapping);
-          }
+    return documentClient
+      .get({
+        TableName: this.mappingsTableConfig.tableName,
+        Key: {
+          uuid
         }
-      );
-    });
+      })
+      .promise()
+      .then((result) => {
+        return result.Item ? some(result.Item as Mapping) : none;
+      });
   }
 
-  public getByName(name: string): Promise<Mapping> {
+  public getByName(name: string): Promise<Option<Mapping>> {
     const documentClient = new DynamoDB.DocumentClient();
 
-    return new Promise((resolve, reject) => {
-      documentClient.query(
-        {
-          TableName: this.mappingsTableConfig.tableName,
-          IndexName: "NameIndex",
-          KeyConditionExpression: "name = :name",
-          ExpressionAttributeValues: {
-            ":sequence": name
-          },
-          Limit: 1
+    return documentClient
+      .query({
+        TableName: this.mappingsTableConfig.tableName,
+        IndexName: "NameIndex",
+        KeyConditionExpression: "name = :name",
+        ExpressionAttributeValues: {
+          ":name": name
         },
-        (error, result) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result.Items.length > 0 ? (result.Items[0] as Mapping) : null);
-          }
-        }
-      );
-    });
+        Limit: 1
+      })
+      .promise()
+      .then((result) => {
+        return result.Items && result.Items.length > 0 ? some(result.Items[0] as Mapping) : none;
+      });
   }
 
   public delete(uuid: string): Promise<void> {
     const documentClient = new DynamoDB.DocumentClient();
 
-    return new Promise((resolve, reject) => {
-      documentClient.delete(
-        {
-          TableName: this.mappingsTableConfig.tableName,
-          Key: {
-            uuid
-          }
-        },
-        (error, result) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
+    return documentClient
+      .delete({
+        TableName: this.mappingsTableConfig.tableName,
+        Key: {
+          uuid
         }
-      );
-    });
+      })
+      .promise()
+      .then(() => {
+        return;
+      });
   }
 
   public put(mapping: Mapping): Promise<void> {
     const documentClient = new DynamoDB.DocumentClient();
 
-    return new Promise((resolve, reject) => {
-      documentClient.put(
-        {
-          TableName: this.mappingsTableConfig.tableName,
-          Item: mapping
-        },
-        (error, result) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        }
-      );
-    });
+    return documentClient
+      .put({
+        TableName: this.mappingsTableConfig.tableName,
+        Item: mapping
+      })
+      .promise()
+      .then(() => {
+        return;
+      });
   }
 }

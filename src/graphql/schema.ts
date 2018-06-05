@@ -10,7 +10,7 @@ import mappingsToGraphql from "./mapper";
 /**
  * Get a GraphQL schema from mapping service.
  *
- * @returns {Promise<GraphQLSchema>} GraphQL schema
+ * @returns GraphQL schema
  */
 function getGraphqlSchema(context: ExecutionContext): Promise<GraphQLSchema> {
   return MappingService.list(context).then(mappingsToGraphql);

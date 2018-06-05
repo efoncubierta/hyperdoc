@@ -42,10 +42,11 @@ function validateMapping(nodeProperties: NodeProperties, mappingProperties: Mapp
 function nodePropertiesMappingGeneratorTest() {
   describe("NodePropertiesMappingGenerator", () => {
     it("should generate a valid mapping from node properties", () => {
+      const mappingId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomFullNodeProperties();
 
-      const mapping = NodePropertiesMappingGenerator.toMapping(mappingName, nodeProperties);
+      const mapping = NodePropertiesMappingGenerator.toMapping(mappingId, mappingName, nodeProperties);
 
       expect(mapping).to.exist;
       validateMapping(nodeProperties, mapping.properties);

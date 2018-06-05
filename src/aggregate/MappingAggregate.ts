@@ -1,11 +1,10 @@
-// eventum dependencies
-import { AggregateConfig, Snapshot, AggregateFSM, State, Event } from "eventum-sdk";
+// Eventum dependencies
+import { Aggregate, AggregateConfig, Snapshot, State, Event } from "eventum-sdk";
 
-// models
-import { Nullable } from "../types/Nullable";
-import { Mapping, MappingBuilder, MappingProperties } from "../model/Mapping";
+// Hyperdoc models
+import { Mapping, MappingProperties, MappingId } from "../model/Mapping";
 
-// maping events
+// Hyperdoc events
 import { MappingStateName } from "./MappingStateName";
 import { MappingEventType } from "../event/MappingEventType";
 import { MappingCreatedV1Payload, MappingPropertiesUpdatedV1Payload } from "../event/MappingEventPayload";
@@ -19,7 +18,7 @@ export interface IMappingAggregate {
 /**
  * FSM aggregate to handle {@link MappingCommand}.
  */
-export class MappingAggregate extends AggregateFSM<Mapping, State<Mapping>> implements IMappingAggregate {
+export class MappingAggregate extends Aggregate<State<Mapping>> implements IMappingAggregate {
   private currentState: State<Mapping> = {
     stateName: MappingStateName.New
   };
@@ -27,15 +26,15 @@ export class MappingAggregate extends AggregateFSM<Mapping, State<Mapping>> impl
   /**
    * Constructor.
    *
-   * @param uuid - Mapping UUID
-   * @param config - Aggregate configuration
+   * @param mappingId Mapping ID
+   * @param config Aggregate configuration
    */
-  protected constructor(uuid: string, config: AggregateConfig) {
-    super(uuid, config);
+  protected constructor(mappingId: MappingId, config: AggregateConfig) {
+    super(mappingId, config);
   }
 
-  public static build(uuid: string): Promise<MappingAggregate> {
-    const aggregate = new MappingAggregate(uuid, {
+  public static build(mappingId: MappingId): Promise<MappingAggregate> {
+    const aggregate = new MappingAggregate(mappingId, {
       snapshot: {
         delta: 5
       }
@@ -177,11 +176,12 @@ export class MappingAggregate extends AggregateFSM<Mapping, State<Mapping>> impl
    */
   private aggregateMappingCreatedV1(event: Event) {
     const payload = event.payload as MappingCreatedV1Payload;
-    const mapping = new MappingBuilder()
-      .uuid(event.aggregateId)
-      .name(payload.name)
-      .properties(payload.properties)
-      .build();
+    const mapping: Mapping = {
+      uuid: event.aggregateId,
+      name: payload.name,
+      properties: payload.properties
+    };
+
     this.currentState = {
       stateName: MappingStateName.Active,
       payload: mapping
@@ -199,7 +199,12 @@ export class MappingAggregate extends AggregateFSM<Mapping, State<Mapping>> impl
   private aggregateMappingPropertiesUpdatedV1(event: Event) {
     const currentMapping = this.currentState.payload;
     const payload = event.payload as MappingPropertiesUpdatedV1Payload;
-    const mapping = new MappingBuilder(currentMapping).properties(payload.properties).build();
+
+    const mapping: Mapping = {
+      ...currentMapping,
+      properties: payload.properties
+    };
+
     this.currentState = {
       stateName: MappingStateName.Active,
       payload: mapping

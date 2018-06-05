@@ -33,15 +33,15 @@ export const NodeSchema: Schema = {
     uuid: {
       type: "string"
     },
-    mapping: {
+    mappingName: {
       type: "string"
     },
     properties: {
       $ref: "/NodeProperties"
-    },
-    audit: {
-      $ref: "/Audit"
     }
+    // audit: {
+    //   $ref: "/Audit"
+    // }
   },
-  required: ["uuid", "mapping", "properties", "audit"]
+  required: ["uuid", "mappingName", "properties"]
 };

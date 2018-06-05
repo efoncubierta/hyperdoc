@@ -1,18 +1,18 @@
-// eventum dependencies
+// Eventum dependencies
 import { Event, Materializer } from "eventum-sdk";
 
-// model
-import { MappingBuilder } from "../model/Mapping";
-import { NodeBuilder } from "../model/Node";
-
-// stores
+// Hyperdoc stores
 import { StoreFactory } from "../store/StoreFactory";
 
-// events
+// Hyperdoc events
 import { MappingEventType } from "../event/MappingEventType";
 import { NodeEventType } from "../event/NodeEventType";
 import { MappingCreatedV1Payload, MappingPropertiesUpdatedV1Payload } from "../event/MappingEventPayload";
 import { NodeCreatedV1Payload, NodePropertiesUpdatedV1Payload } from "../event/NodeEventPayload";
+
+// Hyperdoc models
+import { Mapping } from "../model/Mapping";
+import { Node } from "../model/Node";
 
 export class ContentModelMaterializer extends Materializer {
   public handle(event: Event): Promise<void> {
@@ -36,11 +36,11 @@ export class ContentModelMaterializer extends Materializer {
 
   private handleMappingCreatedV1(event: Event): Promise<void> {
     const payload = event.payload as MappingCreatedV1Payload;
-    const mapping = new MappingBuilder()
-      .uuid(event.aggregateId)
-      .name(payload.name)
-      .properties(payload.properties)
-      .build();
+    const mapping: Mapping = {
+      uuid: event.aggregateId,
+      name: payload.name,
+      properties: payload.properties
+    };
     return StoreFactory.getMappingStore().put(mapping);
   }
 
@@ -48,16 +48,22 @@ export class ContentModelMaterializer extends Materializer {
     const payload = event.payload as MappingPropertiesUpdatedV1Payload;
     return StoreFactory.getMappingStore()
       .get(event.aggregateId)
-      .then((mapping) => {
-        if (!mapping) {
-          console.error(`Mapping(${event.aggregateId}) doesn't exist. MappingPropertiesUpdated event is ignored.`);
-          console.error(event);
-          return;
-        }
+      .then((mappingOpt) => {
+        return mappingOpt.foldL(
+          () => {
+            console.error(`Mapping(${event.aggregateId}) doesn't exist. MappingPropertiesUpdated event is ignored.`);
+            console.error(event);
+            return;
+          },
+          (mapping) => {
+            const newMapping: Mapping = {
+              ...mapping,
+              properties: payload.properties
+            };
 
-        const newMapping = new MappingBuilder(mapping).properties(payload.properties).build();
-
-        return StoreFactory.getMappingStore().put(newMapping);
+            return StoreFactory.getMappingStore().put(newMapping);
+          }
+        );
       });
   }
 
@@ -67,11 +73,11 @@ export class ContentModelMaterializer extends Materializer {
 
   private handleNodeCreatedV1(event: Event): Promise<void> {
     const payload = event.payload as NodeCreatedV1Payload;
-    const node = new NodeBuilder()
-      .uuid(event.aggregateId)
-      .mapping(payload.mappingName)
-      .properties(payload.properties)
-      .build();
+    const node: Node = {
+      uuid: event.aggregateId,
+      mappingName: payload.mappingName,
+      properties: payload.properties
+    };
     return StoreFactory.getNodeStore().put(node);
   }
 
@@ -79,16 +85,22 @@ export class ContentModelMaterializer extends Materializer {
     const payload = event.payload as NodePropertiesUpdatedV1Payload;
     return StoreFactory.getNodeStore()
       .get(event.aggregateId)
-      .then((node) => {
-        if (!node) {
-          console.error(`Node(${event.aggregateId}) doesn't exist. NodePropertiesUpdated event is ignored.`);
-          console.error(event);
-          return;
-        }
+      .then((nodeOpt) => {
+        return nodeOpt.foldL(
+          () => {
+            console.error(`Node(${event.aggregateId}) doesn't exist. NodePropertiesUpdated event is ignored.`);
+            console.error(event);
+            return;
+          },
+          (node) => {
+            const newNode: Node = {
+              ...node,
+              properties: payload.properties
+            };
 
-        const newNode = new NodeBuilder(node).properties(payload.properties).build();
-
-        return StoreFactory.getNodeStore().put(newNode);
+            return StoreFactory.getNodeStore().put(newNode);
+          }
+        );
       });
   }
 

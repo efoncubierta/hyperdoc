@@ -27,20 +27,19 @@ function nodeServiceTests() {
       AWSMock.restoreMock();
     });
 
-    it("should not get a non-existing node", (done) => {
-      NodeService.get(testExecutionContext, TestDataGenerator.randomUUID())
-        .then((node) => {
-          chai.should().not.exist(node);
-        })
-        .then(done);
+    it("should not get a non-existing node", () => {
+      return NodeService.get(testExecutionContext, TestDataGenerator.randomUUID()).then((nodeOpt) => {
+        chai.should().exist(nodeOpt);
+        nodeOpt.isNone().should.be.true;
+      });
     });
 
-    it.skip("should go through the life cycle", (done) => {
+    it.skip("should go through the life cycle", () => {
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
       const nodePropertiesUpdate = TestDataGenerator.randomNodeProperties();
 
-      NodeService.create(testExecutionContext, mappingName, nodeProperties)
+      return NodeService.create(testExecutionContext, mappingName, nodeProperties)
         .then((node) => {
           chai.should().exist(node);
 
@@ -48,26 +47,29 @@ function nodeServiceTests() {
           node.uuid.should.exist;
 
           // check node
-          node.mapping.should.equal(mappingName);
+          node.mappingName.should.equal(mappingName);
 
           // check properties
           node.properties.should.eql(nodeProperties);
 
           return NodeService.get(testExecutionContext, node.uuid);
         })
-        .then((node) => {
-          chai.should().exist(node);
+        .then((nodeOpt) => {
+          chai.should().exist(nodeOpt);
+
+          const n = nodeOpt.getOrElse(null);
+          chai.should().exist(n);
 
           // check UUID
-          node.uuid.should.exist;
+          n.uuid.should.exist;
 
           // check node
-          node.mapping.should.equal(mappingName);
+          n.mappingName.should.equal(mappingName);
 
           // check properties
-          node.properties.should.eql(nodeProperties);
+          n.properties.should.eql(nodeProperties);
 
-          return NodeService.setProperties(testExecutionContext, node.uuid, nodePropertiesUpdate);
+          return NodeService.setProperties(testExecutionContext, n.uuid, nodePropertiesUpdate);
         })
         .then((node) => {
           chai.should().exist(node);
@@ -76,13 +78,11 @@ function nodeServiceTests() {
           node.uuid.should.exist;
 
           // check node
-          node.mapping.should.equal(mappingName);
+          node.mappingName.should.equal(mappingName);
 
           // check properties
           node.properties.should.eql(nodePropertiesUpdate);
-        })
-        .then(done)
-        .catch(done);
+        });
     });
   });
 }

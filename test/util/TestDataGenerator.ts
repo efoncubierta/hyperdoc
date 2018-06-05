@@ -10,7 +10,7 @@ import {
   MappingNestedProperty,
   MappingProperty
 } from "../../src/model/Mapping";
-import { Node, NodeBuilder, NodeProperties } from "../../src/model/Node";
+import { Node, NodeProperties } from "../../src/model/Node";
 import { Audit } from "../../src/model/Audit";
 
 // context
@@ -162,21 +162,19 @@ export class TestDataGenerator {
   }
 
   public static randomFullNode(): Node {
-    return new NodeBuilder()
-      .uuid(this.randomUUID())
-      .mapping(this.randomMappingName())
-      .properties(this.randomFullNodeProperties())
-      .audit(this.randomAudit())
-      .build();
+    return {
+      uuid: this.randomUUID(),
+      mappingName: this.randomMappingName(),
+      properties: this.randomFullNodeProperties()
+    };
   }
 
   public static randomNode(): Node {
-    return new NodeBuilder()
-      .uuid(this.randomUUID())
-      .mapping(this.randomMappingName())
-      .properties(this.randomNodeProperties())
-      .audit(this.randomAudit())
-      .build();
+    return {
+      uuid: this.randomUUID(),
+      mappingName: this.randomMappingName(),
+      properties: this.randomNodeProperties()
+    };
   }
 
   public static randomFullNodeProperties(): NodeProperties {

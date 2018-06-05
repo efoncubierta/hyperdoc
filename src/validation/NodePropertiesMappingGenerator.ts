@@ -1,11 +1,11 @@
 import * as moment from "moment";
 import {
   Mapping,
-  MappingBuilder,
   MappingProperties,
   MappingProperty,
   MappingPropertyType,
-  MappingNestedProperty
+  MappingNestedProperty,
+  MappingId
 } from "../model/Mapping";
 import { NodeProperties, NodePropertyType } from "../model/Node";
 
@@ -16,22 +16,23 @@ export class NodePropertiesMappingGenerator {
   /**
    * Generate a mapping out of node properties.
    *
-   * @param {string} mappingName - Mapping name
-   * @param {NodeProperties} nodeProperties - Node properties
-   * @returns {Mapping} Mapping
+   * @param mappingName Mapping name
+   * @param nodeProperties Node properties
+   * @returns Mapping
    */
-  public static toMapping(mappingName: string, nodeProperties: NodeProperties): Mapping {
-    return new MappingBuilder()
-      .name(mappingName)
-      .properties(this.processNodeProperties(nodeProperties))
-      .build();
+  public static toMapping(mappingId: MappingId, mappingName: string, nodeProperties: NodeProperties): Mapping {
+    return {
+      uuid: mappingId,
+      name: mappingName,
+      properties: this.processNodeProperties(nodeProperties)
+    };
   }
 
   /**
    * Process node properties as mapping properties.
    *
-   * @param nodeProperties - Node properties
-   * @returns {MappingProperties} Mapping properties
+   * @param nodeProperties Node properties
+   * @returns Mapping properties
    */
   private static processNodeProperties(nodeProperties: NodeProperties): MappingProperties {
     const mappingProperties: MappingProperties = {};
@@ -50,8 +51,8 @@ export class NodePropertiesMappingGenerator {
   /**
    * Process a node property as a mapping property.
    *
-   * @param {NodePropertyType} nodeProperty - Node property
-   * @returns {MappingProperty} Mapping property
+   * @param nodeProperty Node property
+   * @returns Mapping property
    */
   private static processNodeProperty(nodeProperty: NodePropertyType): MappingProperty {
     const mandatory = false;

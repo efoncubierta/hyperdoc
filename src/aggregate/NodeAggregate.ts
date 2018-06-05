@@ -1,11 +1,10 @@
-// eventum dependencies
-import { AggregateConfig, Snapshot, AggregateFSM, State, Event } from "eventum-sdk";
+// Eventum dependencies
+import { Aggregate, AggregateConfig, Snapshot, State, Event } from "eventum-sdk";
 
-// models
-import { Nullable } from "../types/Nullable";
-import { Node, NodeBuilder, NodeProperties } from "../model/Node";
+// Hyperdoc models
+import { Node, NodeProperties, NodeId } from "../model/Node";
 
-// maping events
+// Hyperdoc events
 import { NodeStateName } from "./NodeStateName";
 import { NodeEventType } from "../event/NodeEventType";
 import { NodeCreatedV1Payload, NodePropertiesUpdatedV1Payload } from "../event/NodeEventPayload";
@@ -19,7 +18,7 @@ export interface INodeAggregate {
 /**
  * FSM aggregate to handle {@link NodeCommand}.
  */
-export class NodeAggregate extends AggregateFSM<Node, State<Node>> implements INodeAggregate {
+export class NodeAggregate extends Aggregate<State<Node>> implements INodeAggregate {
   private currentState: State<Node> = {
     stateName: NodeStateName.New
   };
@@ -27,15 +26,15 @@ export class NodeAggregate extends AggregateFSM<Node, State<Node>> implements IN
   /**
    * Constructor.
    *
-   * @param uuid - Node UUID
-   * @param config - Aggregate configuration
+   * @param nodeId Node ID
+   * @param config Aggregate configuration
    */
-  protected constructor(uuid: string, config: AggregateConfig) {
-    super(uuid, config);
+  protected constructor(nodeId: NodeId, config: AggregateConfig) {
+    super(nodeId, config);
   }
 
-  public static build(uuid: string): Promise<NodeAggregate> {
-    const aggregate = new NodeAggregate(uuid, {
+  public static build(nodeId: NodeId): Promise<NodeAggregate> {
+    const aggregate = new NodeAggregate(nodeId, {
       snapshot: {
         delta: 5
       }
@@ -177,11 +176,13 @@ export class NodeAggregate extends AggregateFSM<Node, State<Node>> implements IN
    */
   private aggregateNodeCreatedV1(event: Event) {
     const payload = event.payload as NodeCreatedV1Payload;
-    const node = new NodeBuilder()
-      .uuid(event.aggregateId)
-      .mapping(payload.mappingName)
-      .properties(payload.properties)
-      .build();
+
+    const node: Node = {
+      uuid: event.aggregateId,
+      mappingName: payload.mappingName,
+      properties: payload.properties
+    };
+
     this.currentState = {
       stateName: NodeStateName.Active,
       payload: node
@@ -199,7 +200,12 @@ export class NodeAggregate extends AggregateFSM<Node, State<Node>> implements IN
   private aggregateNodePropertiesUpdatedV1(event: Event) {
     const currentNode = this.currentState.payload;
     const payload = event.payload as NodePropertiesUpdatedV1Payload;
-    const node = new NodeBuilder(currentNode).properties(payload.properties).build();
+
+    const node: Node = {
+      ...currentNode,
+      properties: payload.properties
+    };
+
     this.currentState = {
       stateName: NodeStateName.Active,
       payload: node
