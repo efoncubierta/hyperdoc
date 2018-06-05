@@ -1,23 +1,23 @@
 import { NodeStore } from "../../src/store/NodeStore";
-import { Node } from "../../src/model/Node";
+import { Node, NodeId } from "../../src/model/Node";
 
 export class InMemoryNodeStore {
   private static nodes: Node[] = [];
 
-  public static get(uuid: string): Node {
+  public static get(nodeId: NodeId): Node {
     return InMemoryNodeStore.nodes.find((node) => {
-      return node.uuid === uuid;
+      return node.id === nodeId;
     });
   }
 
   public static put(node: Node): void {
-    InMemoryNodeStore.delete(node.uuid);
+    InMemoryNodeStore.delete(node.id);
     InMemoryNodeStore.nodes.push(node);
   }
 
-  public static delete(uuid: string): void {
+  public static delete(nodeId: NodeId): void {
     InMemoryNodeStore.nodes = InMemoryNodeStore.nodes.filter((node) => {
-      return !(node.uuid === uuid);
+      return !(node.id === nodeId);
     });
   }
 }

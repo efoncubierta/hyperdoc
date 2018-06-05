@@ -1,11 +1,11 @@
-import { Mapping } from "../../src/model/Mapping";
+import { Mapping, MappingId } from "../../src/model/Mapping";
 
 export class InMemoryMappingStore {
   private static mappings: Mapping[] = [];
 
-  public static get(uuid: string): Mapping {
+  public static get(mappingId: MappingId): Mapping {
     return InMemoryMappingStore.mappings.find((mapping) => {
-      return mapping.uuid === uuid;
+      return mapping.id === mappingId;
     });
   }
 
@@ -16,13 +16,13 @@ export class InMemoryMappingStore {
   }
 
   public static put(mapping: Mapping): void {
-    InMemoryMappingStore.delete(mapping.uuid);
+    InMemoryMappingStore.delete(mapping.id);
     InMemoryMappingStore.mappings.push(mapping);
   }
 
-  public static delete(uuid: string): void {
+  public static delete(mappingId: MappingId): void {
     InMemoryMappingStore.mappings = InMemoryMappingStore.mappings.filter((mapping) => {
-      return !(mapping.uuid === uuid);
+      return !(mapping.id === mappingId);
     });
   }
 }

@@ -1,5 +1,7 @@
 import { AWSDocumentClientMock } from "./AWSDocumentClientMock";
 import { InMemoryMappingStore } from "../../InMemoryMappingStore";
+import { MappingId } from "../../../../src/model/Mapping";
+import { NodeId } from "../../../../src/model/Node";
 
 export class AWSMappingDocumentClientMock implements AWSDocumentClientMock {
   public static TABLE_NAME = "hyperdoc-test-mappings";
@@ -9,9 +11,9 @@ export class AWSMappingDocumentClientMock implements AWSDocumentClientMock {
   }
 
   public handleGet(params: any, callback: (error?: Error, response?: any) => void): void {
-    const uuid: string = params.Key.uuid;
+    const id: MappingId = params.Key.id;
     callback(null, {
-      Item: InMemoryMappingStore.get(uuid)
+      Item: InMemoryMappingStore.get(id)
     });
   }
 
@@ -29,8 +31,8 @@ export class AWSMappingDocumentClientMock implements AWSDocumentClientMock {
   }
 
   public handleDelete(params: any, callback: (error?: Error, response?: any) => void): void {
-    const uuid: string = params.Key.uuid;
-    InMemoryMappingStore.delete;
+    const id: NodeId = params.Key.id;
+    InMemoryMappingStore.delete(id);
     callback(null);
   }
 

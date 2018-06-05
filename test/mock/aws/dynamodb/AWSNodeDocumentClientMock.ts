@@ -1,5 +1,6 @@
 import { AWSDocumentClientMock } from "./AWSDocumentClientMock";
 import { InMemoryNodeStore } from "../../InMemoryNodeStore";
+import { NodeId } from "../../../../src/model/Node";
 
 export class AWSNodeDocumentClientMock implements AWSDocumentClientMock {
   public static TABLE_NAME = "hyperdoc-test-nodes";
@@ -9,9 +10,9 @@ export class AWSNodeDocumentClientMock implements AWSDocumentClientMock {
   }
 
   public handleGet(params: any, callback: (error?: Error, response?: any) => void): void {
-    const uuid: string = params.Key.uuid;
+    const id: NodeId = params.Key.id;
     callback(null, {
-      Item: InMemoryNodeStore.get(uuid)
+      Item: InMemoryNodeStore.get(id)
     });
   }
 
@@ -29,8 +30,8 @@ export class AWSNodeDocumentClientMock implements AWSDocumentClientMock {
   }
 
   public handleDelete(params: any, callback: (error?: Error, response?: any) => void): void {
-    const uuid: string = params.Key.uuid;
-    InMemoryNodeStore.delete;
+    const id: NodeId = params.Key.id;
+    InMemoryNodeStore.delete(id);
     callback(null);
   }
 

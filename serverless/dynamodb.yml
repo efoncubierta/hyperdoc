@@ -4,10 +4,10 @@ Resources:
     Properties:
       TableName: ${self:provider.environment.NODES_TABLE_NAME}
       AttributeDefinitions:
-        - AttributeName: uuid
+        - AttributeName: id
           AttributeType: S
       KeySchema:
-        - AttributeName: uuid
+        - AttributeName: id
           KeyType: HASH
       ProvisionedThroughput:
           ReadCapacityUnits: 1
@@ -18,12 +18,12 @@ Resources:
     Properties:
       TableName: ${self:provider.environment.MAPPINGS_TABLE_NAME}
       AttributeDefinitions:
-        - AttributeName: uuid
+        - AttributeName: id
           AttributeType: S
         - AttributeName: name
           AttributeType: S
       KeySchema:
-        - AttributeName: uuid
+        - AttributeName: id
           KeyType: HASH
       ProvisionedThroughput:
           ReadCapacityUnits: 1

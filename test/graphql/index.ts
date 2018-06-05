@@ -16,7 +16,7 @@ import mappingsToGraphql from "../../src/graphql/mapper";
 
 const MAPPINGS: Mappings = {
   Type1: {
-    uuid: UUID.v1(),
+    id: UUID.v1(),
     name: "Type1",
     properties: {
       // type2: {
@@ -55,7 +55,7 @@ const MAPPINGS: Mappings = {
     }
   },
   Type2: {
-    uuid: UUID.v1(),
+    id: UUID.v1(),
     name: "Type2",
     properties: {
       name: {
