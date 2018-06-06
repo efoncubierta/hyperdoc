@@ -66,7 +66,6 @@ export interface MappingNodeProperty extends MappingProperty {
 export enum MappingStateName {
   New = "New",
   Enabled = "Enabled",
-  Disabled = "Disabled",
   Deleted = "Deleted"
 }
 
