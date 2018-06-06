@@ -8,7 +8,7 @@ export interface AWSDocumentClientMock {
   canHandleQuery(params: any): boolean;
   handleQuery(params: any, callback: (error?: Error, response?: any) => void): void;
   canHandleScan(params: any): boolean;
-  handleScan(params: any, callback: (error?: Error, response?: any) => void): boolean;
+  handleScan(params: any, callback: (error?: Error, response?: any) => void): void;
   canHandleBatchWrite(params: any): boolean;
   handleBatchWrite(params: any, callback: (error?: Error, response?: any) => void): void;
 }

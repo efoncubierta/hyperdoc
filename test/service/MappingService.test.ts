@@ -5,15 +5,15 @@ import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 import "mocha";
 
-// services
+// Hyperdoc services
 import { MappingService } from "../../src/service/MappingService";
+import { MappingServiceError } from "../../src/service/MappingServiceError";
+import { MappingProperties } from "../../src/model/Mapping";
 
 // test dependencies
 import { TestDataGenerator } from "../util/TestDataGenerator";
 import { AWSMock } from "../mock/aws";
 import { InMemoryMappingStore } from "../mock/InMemoryMappingStore";
-import { MappingServiceError } from "../../src/service/MappingServiceError";
-import { MappingProperties } from "../../src/model/Mapping";
 
 const testExecutionContext = TestDataGenerator.randomExecutionContext();
 

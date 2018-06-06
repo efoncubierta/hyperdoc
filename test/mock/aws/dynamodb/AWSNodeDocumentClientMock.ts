@@ -49,7 +49,7 @@ export class AWSNodeDocumentClientMock implements AWSDocumentClientMock {
     return false;
   }
 
-  public handleScan(params: any, callback: (error?: Error, response?: any) => void): boolean {
+  public handleScan(params: any, callback: (error?: Error, response?: any) => void): void {
     throw new Error("Method not implemented.");
   }
 

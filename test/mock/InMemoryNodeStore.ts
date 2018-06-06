@@ -20,4 +20,8 @@ export class InMemoryNodeStore {
       return !(node.nodeId === nodeId);
     });
   }
+
+  public static reset(): void {
+    this.nodes = [];
+  }
 }

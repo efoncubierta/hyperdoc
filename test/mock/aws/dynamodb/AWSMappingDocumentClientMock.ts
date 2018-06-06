@@ -54,11 +54,13 @@ export class AWSMappingDocumentClientMock implements AWSDocumentClientMock {
   }
 
   public canHandleScan(params: any): boolean {
-    return false;
+    return params.TableName === AWSMappingDocumentClientMock.TABLE_NAME;
   }
 
-  public handleScan(params: any, callback: (error?: Error, response?: any) => void): boolean {
-    throw new Error("Method not implemented.");
+  public handleScan(params: any, callback: (error?: Error, response?: any) => void): void {
+    callback(null, {
+      Items: InMemoryMappingStore.list()
+    });
   }
 
   public canHandleBatchWrite(params: any): boolean {

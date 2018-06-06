@@ -25,4 +25,12 @@ export class InMemoryMappingStore {
       return !(mapping.mappingId === mappingId);
     });
   }
+
+  public static list(): Mapping[] {
+    return this.mappings;
+  }
+
+  public static reset(): void {
+    this.mappings = [];
+  }
 }

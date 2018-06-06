@@ -44,6 +44,22 @@ export class AWSDynamoDBMock {
   }
 
   /**
+   * Mock the DocumentClient.delete() call.
+   *
+   * @param params DocumentClient.delete() input parameters
+   * @param callback Callback
+   */
+  private static documentClientDeleteMock(params, callback): void {
+    if (AWSDynamoDBMock.nodeDocumentClientMock.canHandleDelete(params)) {
+      AWSDynamoDBMock.nodeDocumentClientMock.handleDelete(params, callback);
+    } else if (AWSDynamoDBMock.mappingDocumentClientMock.canHandleDelete(params)) {
+      AWSDynamoDBMock.mappingDocumentClientMock.handleDelete(params, callback);
+    } else {
+      return callback(new Error("This DocumentClient.delete() call hasn't been mocked."));
+    }
+  }
+
+  /**
    * Mock the DocumentClient.query() call.
    *
    * @param params DocumentClient.query() input parameters
@@ -97,6 +113,7 @@ export class AWSDynamoDBMock {
   public static enableMock(): void {
     AWS.mock("DynamoDB.DocumentClient", "get", AWSDynamoDBMock.documentClientGetMock);
     AWS.mock("DynamoDB.DocumentClient", "put", AWSDynamoDBMock.documentClientPutMock);
+    AWS.mock("DynamoDB.DocumentClient", "delete", AWSDynamoDBMock.documentClientDeleteMock);
     AWS.mock("DynamoDB.DocumentClient", "query", AWSDynamoDBMock.documentClientQueryMock);
     AWS.mock("DynamoDB.DocumentClient", "scan", AWSDynamoDBMock.documentClientScanMock);
     AWS.mock("DynamoDB.DocumentClient", "batchWrite", AWSDynamoDBMock.documentClientBatchWriteMock);
