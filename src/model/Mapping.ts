@@ -2,7 +2,7 @@
  * Mapping type.
  */
 export interface Mapping {
-  id: MappingId;
+  mappingId: MappingId;
   name: string;
   properties: MappingProperties;
 }
@@ -15,7 +15,7 @@ export type MappingId = string;
 /**
  * Mapping key.
  */
-export type MappingKey = Pick<Mapping, "id">;
+export type MappingKey = Pick<Mapping, "mappingId">;
 
 /**
  * Mappings directionary.
@@ -58,4 +58,22 @@ export interface MappingNestedProperty extends MappingProperty {
 
 export interface MappingNodeProperty extends MappingProperty {
   mapping: string;
+}
+
+/**
+ * Mapping state names.
+ */
+export enum MappingStateName {
+  New = "New",
+  Enabled = "Enabled",
+  Disabled = "Disabled",
+  Deleted = "Deleted"
+}
+
+/**
+ * Mapping state.
+ */
+export interface MappingState {
+  readonly name: MappingStateName;
+  readonly mapping?: Mapping;
 }

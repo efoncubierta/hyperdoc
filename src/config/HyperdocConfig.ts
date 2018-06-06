@@ -1,3 +1,5 @@
+import { AggregateConfig } from "eventum-sdk";
+
 /**
  * Hyperdoc configuration structure.
  */
@@ -6,6 +8,7 @@ export interface HyperdocConfig {
   serviceName: string;
   stage: string;
   aws: HyperdocAWSConfig;
+  eventum: HyperdocEventumConfig;
 }
 
 /**
@@ -39,6 +42,16 @@ export interface HyperdocAWSDynamoDBTable {
 }
 
 /**
+ * Eventum configuration.
+ */
+export interface HyperdocEventumConfig {
+  aggregate: {
+    mapping: AggregateConfig;
+    node: AggregateConfig;
+  };
+}
+
+/**
  * Hyperdoc default configuration.
  *
  * By default, Hyperdoc is configured assuming it'll be run on AWS. It uses the environment
@@ -65,6 +78,20 @@ export const HyperdocConfigDefault: HyperdocConfig = {
       },
       nodes: {
         tableName: process.env.NODES_TABLE_NAME || "hyperdoc-dev-nodes"
+      }
+    }
+  },
+  eventum: {
+    aggregate: {
+      mapping: {
+        snapshot: {
+          delta: 5
+        }
+      },
+      node: {
+        snapshot: {
+          delta: 5
+        }
       }
     }
   }

@@ -11,9 +11,11 @@ export class AWSMappingDocumentClientMock implements AWSDocumentClientMock {
   }
 
   public handleGet(params: any, callback: (error?: Error, response?: any) => void): void {
-    const id: MappingId = params.Key.id;
+    const mappingId: MappingId = params.Key.mappingId;
+    const mapping = InMemoryMappingStore.get(mappingId);
+
     callback(null, {
-      Item: InMemoryMappingStore.get(id)
+      Item: mapping
     });
   }
 
@@ -31,8 +33,8 @@ export class AWSMappingDocumentClientMock implements AWSDocumentClientMock {
   }
 
   public handleDelete(params: any, callback: (error?: Error, response?: any) => void): void {
-    const id: NodeId = params.Key.id;
-    InMemoryMappingStore.delete(id);
+    const mappingId: NodeId = params.Key.mappingId;
+    InMemoryMappingStore.delete(mappingId);
     callback(null);
   }
 

@@ -10,9 +10,11 @@ export class AWSNodeDocumentClientMock implements AWSDocumentClientMock {
   }
 
   public handleGet(params: any, callback: (error?: Error, response?: any) => void): void {
-    const id: NodeId = params.Key.id;
+    const nodeId: NodeId = params.Key.nodeId;
+    const node = InMemoryNodeStore.get(nodeId);
+
     callback(null, {
-      Item: InMemoryNodeStore.get(id)
+      Item: node
     });
   }
 
@@ -30,8 +32,8 @@ export class AWSNodeDocumentClientMock implements AWSDocumentClientMock {
   }
 
   public handleDelete(params: any, callback: (error?: Error, response?: any) => void): void {
-    const id: NodeId = params.Key.id;
-    InMemoryNodeStore.delete(id);
+    const nodeId: NodeId = params.Key.nodeId;
+    InMemoryNodeStore.delete(nodeId);
     callback(null);
   }
 

@@ -3,17 +3,18 @@ import * as UUID from "uuid";
 import { Option } from "fp-ts/lib/Option";
 
 // Hyperdoc models
-import { Mappings, Mapping, MappingProperties, MappingId } from "../model/Mapping";
+import { Mappings, Mapping, MappingProperties, MappingId, MappingStateName, MappingState } from "../model/Mapping";
 
 // Hyperdoc aggregates
-import { MappingAggregate } from "../aggregate/MappingAggregate";
-import { MappingStateName } from "../aggregate/MappingStateName";
+import { MappingAggregate, IMappingAggregate } from "../aggregate/MappingAggregate";
 
 // Hyperdoc services
 import { ExecutionContext } from "./ExecutionContext";
 
 // Hyperdoc stores
 import { StoreFactory } from "../store/StoreFactory";
+import { MappingServiceError } from "./MappingServiceError";
+import { SchemaValidator } from "../validation/SchemaValidator";
 
 /**
  * Service to manage mappings from the user space.
@@ -67,47 +68,35 @@ export class MappingService {
    * Create a new mapping.
    *
    * @param context Execution context
-   * @param mappingName Mapping name
-   * @param mappingProperties Mapping properties
+   * @param name Mapping name
+   * @param properties Mapping properties
    *
    * @returns A promise that resolves the mapping just created
    */
-  public static create(
-    context: ExecutionContext,
-    mappingName: string,
-    mappingProperties: MappingProperties
-  ): Promise<Mapping> {
-    // TODO validation
+  public static create(context: ExecutionContext, name: string, properties: MappingProperties): Promise<Mapping> {
     // TODO check permissions
+
+    // validation
+    MappingService.validateMappingName(name);
+    MappingService.validateMappingProperties(properties);
 
     //  new mapping UUID
     const mappingId: MappingId = UUID.v1();
 
-    return MappingService.getByName(context, mappingName)
-      .then((mappingOpt) => {
-        return mappingOpt.foldL(
-          () => {
-            // get the aggregate for the mapping
-            return MappingService.getAggregate(mappingId);
-          },
-          (mapping) => {
-            // throw an error if a mapping with the same name already exists
-            throw new Error(`Mapping ${mappingName} already exists`);
-          }
-        );
-      })
-      .then((mappingAggregate) => {
-        // aggregate checks whether the mapping already exist before creating it
-        return mappingAggregate.create(mappingName, mappingProperties);
-      })
-      .then((mappingState) => {
-        // if state is active and has a payload, then return it. Fail otherwise
-        if (mappingState.stateName === MappingStateName.Active && mappingState.payload) {
-          return mappingState.payload;
-        } else {
-          throw new Error(`Mapping ${mappingId} is in an inconsistent state`);
+    return MappingService.getByName(context, name).then((mappingOpt) => {
+      return mappingOpt.foldL(
+        () => {
+          // invoke create() in the aggregate. New state must be "Enabled"
+          return this.runAggregate(mappingId)((aggregate) => aggregate.create(name, properties), [
+            MappingStateName.Enabled
+          ]);
+        },
+        (mapping) => {
+          // throw an error if a mapping with the same name already exists
+          throw new MappingServiceError(`Mapping ${name} already exists`);
         }
-      });
+      );
+    });
   }
 
   /**
@@ -115,35 +104,64 @@ export class MappingService {
    *
    * @param context Execution context
    * @param mappingId Mapping uuid
-   * @param mappingProperties Mapping properties
+   * @param properties Mapping properties
    *
    * @returns A promise that resolves the mapping just updated
    */
   public static setProperties(
     context: ExecutionContext,
     mappingId: MappingId,
-    mappingProperties: MappingProperties
+    properties: MappingProperties
   ): Promise<Mapping> {
-    // TODO validate
     // TODO check permissions
 
-    // get the mapping aggregate
-    return MappingService.getAggregate(mappingId)
-      .then((mappingAggregate) => {
-        // mapping aggregate checks whether the mapping exist before setting the properties
-        return mappingAggregate.setProperties(mappingProperties);
-      })
-      .then((mappingState) => {
-        // if state is active and has a payload, then return it. Fail otherwise
-        if (mappingState.stateName === MappingStateName.Active && mappingState.payload) {
-          return mappingState.payload;
-        } else {
-          throw new Error(`Mapping ${mappingId} is in an inconsistent state`);
-        }
-      });
+    // validation
+    MappingService.validateMappingProperties(properties);
+
+    // invoke setProperties() in the aggregate. New state must be "Enabled"
+    return this.runAggregate(mappingId)((aggregate) => aggregate.setProperties(properties), [MappingStateName.Enabled]);
   }
 
-  private static getAggregate(mappingId: MappingId): Promise<MappingAggregate> {
+  private static runAggregate(mappingId: MappingId): RunAggregateF {
+    return (invoke: AggregateInvokeF, expectedStates: MappingStateName[], hasPayload: boolean = true) => {
+      return this.getAggregate(mappingId)
+        .then((aggregate) => {
+          return invoke(aggregate);
+        })
+        .then((mappingState) => {
+          if (expectedStates.indexOf(mappingState.name) >= 0 && (!hasPayload || mappingState.mapping)) {
+            return mappingState.mapping;
+          } else {
+            throw new MappingServiceError(`Mapping ${mappingId} is in an inconsistent state`);
+          }
+        });
+    };
+  }
+
+  private static getAggregate(mappingId: MappingId): Promise<IMappingAggregate> {
     return MappingAggregate.build(mappingId);
   }
+
+  private static validateMappingName(name: string): void {
+    // validate mapping name against the JSON schema and process errors
+    const result = SchemaValidator.validateMappingName(name);
+    if (result.errors.length > 0) {
+      throw new MappingServiceError(result.errors[0].message);
+    }
+  }
+
+  private static validateMappingProperties(properties: MappingProperties): void {
+    // validate mapping properties against the JSON schema and process errors
+    const result = SchemaValidator.validateMappingProperties(properties);
+    if (result.errors.length > 0) {
+      throw new MappingServiceError(result.errors[0].message);
+    }
+  }
 }
+
+type AggregateInvokeF = (aggregate: IMappingAggregate) => Promise<MappingState>;
+type RunAggregateF = (
+  invoke: AggregateInvokeF,
+  expectedStates: MappingStateName[],
+  hasPayload?: boolean
+) => Promise<Mapping>;

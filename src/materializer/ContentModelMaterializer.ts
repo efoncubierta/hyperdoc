@@ -5,10 +5,13 @@ import { Event, Materializer } from "eventum-sdk";
 import { StoreFactory } from "../store/StoreFactory";
 
 // Hyperdoc events
-import { MappingEventType } from "../event/MappingEventType";
-import { NodeEventType } from "../event/NodeEventType";
-import { MappingCreatedV1Payload, MappingPropertiesUpdatedV1Payload } from "../event/MappingEventPayload";
-import { NodeCreatedV1Payload, NodePropertiesUpdatedV1Payload } from "../event/NodeEventPayload";
+import {
+  MappingEventType,
+  MappingCreatedV1,
+  MappingPropertiesUpdatedV1,
+  MappingDeletedV1
+} from "../event/MappingEvent";
+import { NodeEventType, NodeCreatedV1, NodePropertiesUpdatedV1, NodeDeletedV1 } from "../event/NodeEvent";
 
 // Hyperdoc models
 import { Mapping } from "../model/Mapping";
@@ -18,35 +21,32 @@ export class ContentModelMaterializer extends Materializer {
   public handle(event: Event): Promise<void> {
     switch (event.eventType) {
       case MappingEventType.CreatedV1:
-        return this.handleMappingCreatedV1(event);
+        return this.handleMappingCreatedV1(event as MappingCreatedV1);
       case MappingEventType.PropertiesUpdatedV1:
-        return this.handleMappingPropertiesUpdatedV1(event);
+        return this.handleMappingPropertiesUpdatedV1(event as MappingPropertiesUpdatedV1);
       case MappingEventType.DeletedV1:
-        return this.handleMappingDeletedV1(event);
+        return this.handleMappingDeletedV1(event as MappingDeletedV1);
       case NodeEventType.CreatedV1:
-        return this.handleNodeCreatedV1(event);
+        return this.handleNodeCreatedV1(event as NodeCreatedV1);
       case NodeEventType.PropertiesUpdatedV1:
-        return this.handleNodePropertiesUpdatedV1(event);
+        return this.handleNodePropertiesUpdatedV1(event as NodePropertiesUpdatedV1);
       case NodeEventType.DeletedV1:
-        return this.handleNodeDeletedV1(event);
+        return this.handleNodeDeletedV1(event as NodeDeletedV1);
       default:
         return Promise.resolve();
       // todo do nothing
     }
   }
 
-  private handleMappingCreatedV1(event: Event): Promise<void> {
-    const payload = event.payload as MappingCreatedV1Payload;
+  private handleMappingCreatedV1(event: MappingCreatedV1): Promise<void> {
     const mapping: Mapping = {
-      id: event.aggregateId,
-      name: payload.name,
-      properties: payload.properties
+      mappingId: event.aggregateId,
+      ...event.payload
     };
     return StoreFactory.getMappingStore().put(mapping);
   }
 
-  private handleMappingPropertiesUpdatedV1(event: Event): Promise<void> {
-    const payload = event.payload as MappingPropertiesUpdatedV1Payload;
+  private handleMappingPropertiesUpdatedV1(event: MappingPropertiesUpdatedV1): Promise<void> {
     return StoreFactory.getMappingStore()
       .get(event.aggregateId)
       .then((mappingOpt) => {
@@ -59,7 +59,7 @@ export class ContentModelMaterializer extends Materializer {
           (mapping) => {
             const newMapping: Mapping = {
               ...mapping,
-              properties: payload.properties
+              ...event.payload
             };
 
             return StoreFactory.getMappingStore().put(newMapping);
@@ -68,22 +68,19 @@ export class ContentModelMaterializer extends Materializer {
       });
   }
 
-  private handleMappingDeletedV1(event: Event): Promise<void> {
+  private handleMappingDeletedV1(event: MappingDeletedV1): Promise<void> {
     return StoreFactory.getMappingStore().delete(event.aggregateId);
   }
 
-  private handleNodeCreatedV1(event: Event): Promise<void> {
-    const payload = event.payload as NodeCreatedV1Payload;
+  private handleNodeCreatedV1(event: NodeCreatedV1): Promise<void> {
     const node: Node = {
-      id: event.aggregateId,
-      mappingName: payload.mappingName,
-      properties: payload.properties
+      nodeId: event.aggregateId,
+      ...event.payload
     };
     return StoreFactory.getNodeStore().put(node);
   }
 
-  private handleNodePropertiesUpdatedV1(event: Event): Promise<void> {
-    const payload = event.payload as NodePropertiesUpdatedV1Payload;
+  private handleNodePropertiesUpdatedV1(event: NodePropertiesUpdatedV1): Promise<void> {
     return StoreFactory.getNodeStore()
       .get(event.aggregateId)
       .then((nodeOpt) => {
@@ -96,7 +93,7 @@ export class ContentModelMaterializer extends Materializer {
           (node) => {
             const newNode: Node = {
               ...node,
-              properties: payload.properties
+              ...event.payload
             };
 
             return StoreFactory.getNodeStore().put(newNode);
@@ -105,7 +102,7 @@ export class ContentModelMaterializer extends Materializer {
       });
   }
 
-  private handleNodeDeletedV1(event: Event): Promise<void> {
+  private handleNodeDeletedV1(event: NodeDeletedV1): Promise<void> {
     return StoreFactory.getNodeStore().delete(event.aggregateId);
   }
 }

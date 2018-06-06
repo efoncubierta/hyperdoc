@@ -34,14 +34,14 @@ export class MappingDynamoDBStore extends DynamoDBStore implements MappingStore 
       });
   }
 
-  public get(uuid: string): Promise<Option<Mapping>> {
+  public get(mappingId: string): Promise<Option<Mapping>> {
     const documentClient = new DynamoDB.DocumentClient();
 
     return documentClient
       .get({
         TableName: this.mappingsTableConfig.tableName,
         Key: {
-          uuid
+          mappingId
         }
       })
       .promise()
@@ -69,14 +69,14 @@ export class MappingDynamoDBStore extends DynamoDBStore implements MappingStore 
       });
   }
 
-  public delete(uuid: string): Promise<void> {
+  public delete(mappingId: string): Promise<void> {
     const documentClient = new DynamoDB.DocumentClient();
 
     return documentClient
       .delete({
         TableName: this.mappingsTableConfig.tableName,
         Key: {
-          uuid
+          mappingId
         }
       })
       .promise()

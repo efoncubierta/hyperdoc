@@ -5,7 +5,7 @@ export class InMemoryMappingStore {
 
   public static get(mappingId: MappingId): Mapping {
     return InMemoryMappingStore.mappings.find((mapping) => {
-      return mapping.id === mappingId;
+      return mapping.mappingId === mappingId;
     });
   }
 
@@ -16,13 +16,13 @@ export class InMemoryMappingStore {
   }
 
   public static put(mapping: Mapping): void {
-    InMemoryMappingStore.delete(mapping.id);
+    InMemoryMappingStore.delete(mapping.mappingId);
     InMemoryMappingStore.mappings.push(mapping);
   }
 
   public static delete(mappingId: MappingId): void {
     InMemoryMappingStore.mappings = InMemoryMappingStore.mappings.filter((mapping) => {
-      return !(mapping.id === mappingId);
+      return !(mapping.mappingId === mappingId);
     });
   }
 }

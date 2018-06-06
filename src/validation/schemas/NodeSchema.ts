@@ -1,35 +1,36 @@
 import { Schema } from "jsonschema";
 
 export const NodeSchema: Schema = {
-  id: "/Node",
+  id: "/Model/Node",
   type: "object",
   properties: {
-    id: {
-      type: "string"
+    nodeId: {
+      $ref: "/Model/UUID"
     },
     mappingName: {
       type: "string"
     },
     properties: {
-      $ref: "/NodeProperties"
+      $ref: "/Model/NodeProperties"
     }
     // audit: {
     //   $ref: "/Audit"
     // }
   },
-  required: ["id", "mappingName", "properties"]
+  required: ["nodeId", "mappingName", "properties"],
+  additionalProperties: false
 };
 
 export const NodePropertiesSchema: Schema = {
-  id: "/NodeProperties",
+  id: "/Model/NodeProperties",
   type: "object",
   patternProperties: {
-    ".*": { $ref: "/NodeProperty" }
+    ".*": { $ref: "/Model/NodeProperty" }
   }
 };
 
 export const NodePropertySchema: Schema = {
-  id: "/NodeProperty",
+  id: "/Model/NodeProperty",
   oneOf: [
     {
       type: ["string", "number", "boolean"]
@@ -41,7 +42,7 @@ export const NodePropertySchema: Schema = {
       }
     },
     {
-      $ref: "/NodeProperties"
+      $ref: "/Model/NodeProperties"
     }
   ]
 };

@@ -23,7 +23,7 @@ export class NodePropertiesMappingGenerator {
    */
   public static toMapping(mappingId: MappingId, mappingName: string, nodeProperties: NodeProperties): Mapping {
     return {
-      id: mappingId,
+      mappingId: mappingId,
       name: mappingName,
       properties: this.processNodeProperties(nodeProperties)
     };

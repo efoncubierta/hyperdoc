@@ -1,53 +1,109 @@
 // Eventum dependencies
 import { Aggregate, AggregateConfig, Snapshot, State, Event } from "eventum-sdk";
 
+// Hyperdoc configuration
+import { Hyperdoc } from "../Hyperdoc";
+
 // Hyperdoc models
-import { Node, NodeProperties, NodeId } from "../model/Node";
+import { Node, NodeProperties, NodeId, NodeStateName, NodeState } from "../model/Node";
 
 // Hyperdoc events
-import { NodeStateName } from "./NodeStateName";
-import { NodeEventType } from "../event/NodeEventType";
-import { NodeCreatedV1Payload, NodePropertiesUpdatedV1Payload } from "../event/NodeEventPayload";
+import {
+  NodeEventType,
+  NodeCreatedV1,
+  NodePropertiesUpdatedV1,
+  NodeDeletedV1,
+  NodeEvent,
+  NodeLockedV1,
+  NodeUnlockedV1,
+  NodeDisabledV1,
+  NodeEnabledV1
+} from "../event/NodeEvent";
 
+/**
+ * Node aggregate definition.
+ *
+ * This aggregate manages node states.
+ */
 export interface INodeAggregate {
-  create(name: string, properties: NodeProperties): Promise<State<Node>>;
-  setProperties(properties: NodeProperties): Promise<State<Node>>;
-  delete(): Promise<State<Node>>;
+  /**
+   * Create a new node.
+   *
+   * @param mappingName Mapping name
+   * @param properties Node properties
+   * @returns Promise that resolves to a node state
+   */
+  create(mappingName: string, properties: NodeProperties): Promise<NodeState>;
+
+  /**
+   * Set node properties.
+   *
+   * @param properties Node properties
+   * @returns Promise that resolves to a node state
+   */
+  setProperties(properties: NodeProperties): Promise<NodeState>;
+
+  /**
+   * Disable a node.
+   *
+   * @param reason Reason why it was disabled
+   */
+  disable(reason: string): Promise<NodeState>;
+
+  /**
+   * Enable a node.
+   */
+  enable(): Promise<NodeState>;
+
+  /**
+   * Lock the node.
+   */
+  lock(): Promise<NodeState>;
+
+  /**
+   * Unlock the node.
+   */
+  unlock(): Promise<NodeState>;
+
+  /**
+   * Delete a node
+   *
+   * @returns Promise that resolves to a node state
+   */
+  delete(): Promise<NodeState>;
 }
 
 /**
- * FSM aggregate to handle {@link NodeCommand}.
+ * Node aggregate.
  */
-export class NodeAggregate extends Aggregate<State<Node>> implements INodeAggregate {
-  private currentState: State<Node> = {
-    stateName: NodeStateName.New
+export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregate {
+  // default current state is New
+  private currentState: NodeState = {
+    name: NodeStateName.New
   };
 
   /**
-   * Constructor.
+   * Create and rehydrate a node aggregate.
    *
    * @param nodeId Node ID
-   * @param config Aggregate configuration
+   * @returns Promise that resolves to a node aggregate
    */
-  protected constructor(nodeId: NodeId, config: AggregateConfig) {
-    super(nodeId, config);
-  }
-
   public static build(nodeId: NodeId): Promise<NodeAggregate> {
-    const aggregate = new NodeAggregate(nodeId, {
-      snapshot: {
-        delta: 5
-      }
-    });
-    return aggregate.rehydrate().then(() => {
-      return aggregate;
+    // aggregate config for node aggregate
+    const aggregateConfig = Hyperdoc.config().eventum.aggregate.node;
+
+    // create aggregate
+    const nodeAggregate = new NodeAggregate(nodeId, aggregateConfig);
+
+    return nodeAggregate.rehydrate().then(() => {
+      return nodeAggregate;
     });
   }
 
   /**
-   * Get current node.
+   * Get current node state.
    */
-  public get(): State<Node> {
+  public get(): NodeState {
     return this.currentState;
   }
 
@@ -55,26 +111,28 @@ export class NodeAggregate extends Aggregate<State<Node>> implements INodeAggreg
    * Create a node.
    *
    * Invariants:
-   * - Node must not exist.
+   * - State is New => emit NodeCreated event
+   * - State is * => fail "node already exist"
    *
    * Events:
-   * - NodeCreated
+   * - {@link NodeEventPayload.CreatedV1}
    *
-   * @param name Node name
+   * @param mappingName Node name
    * @param properties Node properties
-   * @returns A promise with the node state
+   * @returns A promise that resolves to a node state
    */
-  public create(name: string, properties: NodeProperties): Promise<State<Node>> {
-    switch (this.currentState.stateName) {
+  public create(mappingName: string, properties: NodeProperties): Promise<NodeState> {
+    switch (this.currentState.name) {
       case NodeStateName.New:
-        return this.emit({
+        const nodeEvent: NodeCreatedV1 = {
           aggregateId: this.aggregateId,
           eventType: NodeEventType.CreatedV1,
           payload: {
-            name,
+            mappingName,
             properties
           }
-        });
+        };
+        return this.emit(nodeEvent);
       default:
         return Promise.reject(`Node ${this.aggregateId} already exists.`);
     }
@@ -84,28 +142,33 @@ export class NodeAggregate extends Aggregate<State<Node>> implements INodeAggreg
    * Set node properties.
    *
    * Invariants:
-   * - Entity must exist and not be deleted.
+   * - State is Enabled => emit NodePropertiesUpdated event
+   * - State is Locked => fail "node is locked"
+   * - State is Disabled => faile "node is disabled"
+   * - State is * => fail "node does not exist"
    *
    * Events:
-   * - NodePropertiesUpdated
+   * - {@link NodeEventType.PropertiesUpdatedV1}
    *
    * @param properties Node properties
-   * @returns A promise with the node state
+   * @returns A promise that resolves to a node state
    */
-  public setProperties(properties: NodeProperties): Promise<State<Node>> {
-    switch (this.currentState.stateName) {
-      case NodeStateName.Active:
-        return this.emit({
+  public setProperties(properties: NodeProperties): Promise<NodeState> {
+    switch (this.currentState.name) {
+      case NodeStateName.Enabled:
+        const nodeEvent: NodePropertiesUpdatedV1 = {
           aggregateId: this.aggregateId,
           eventType: NodeEventType.PropertiesUpdatedV1,
           payload: {
             properties
           }
-        });
+        };
+        return this.emit(nodeEvent);
+      case NodeStateName.Locked:
+      case NodeStateName.Disabled:
+        return Promise.reject(`Node ${this.aggregateId} cannot be updated because it is locked or disabled`);
       default:
-        return Promise.reject(
-          `Cannot set properties on node ${this.aggregateId}. It doesn't exist or it's been deleted.`
-        );
+        return Promise.reject(`Node ${this.aggregateId} cannot be updated because it does not exist`);
     }
   }
 
@@ -113,52 +176,198 @@ export class NodeAggregate extends Aggregate<State<Node>> implements INodeAggreg
    * Delete a node.
    *
    * Invariants:
-   * - Entity must exist and not be deleted.
+   * - State is Enabled|Disabled => emit NodeDeleted event
+   * - State is Locked => fail "node is locked"
+   * - State is * => fail "node does not exist"
    *
    * Events:
-   * - NodeDeleted
+   * - {@link NodeEventType.DeletedV1}
    *
-   * @returns A promise with the node state
+   * @returns A promise that resolves to a node state
    */
-  public delete(): Promise<State<Node>> {
-    switch (this.currentState.stateName) {
-      case NodeStateName.Active:
-        return this.emit({
+  public delete(): Promise<NodeState> {
+    switch (this.currentState.name) {
+      case NodeStateName.Enabled:
+      case NodeStateName.Disabled:
+        const nodeEvent: NodeDeletedV1 = {
           aggregateId: this.aggregateId,
           eventType: NodeEventType.DeletedV1
-        });
+        };
+        return this.emit(nodeEvent);
+      case NodeStateName.Locked:
+        return Promise.reject(`Node ${this.aggregateId} cannot be deleted because it is locked`);
       default:
-        return Promise.reject(new Error(`Node ${this.aggregateId} doesn't exist and cannot be deleted`));
+        return Promise.reject(`Node ${this.aggregateId} cannot be deleted because it does not exist`);
     }
   }
 
   /**
-   * Aggregate {@link Snapshot} to the current state.
+   * Disable a node.
+   *
+   * Invariants:
+   * - State is Enabled => emit NodeDisabled event
+   * - State is Disabled => do nothing
+   * - State is Locked => fail "node is locked"
+   * - State is * => fail "node does not exist"
+   *
+   * Events:
+   * - {@link NodeEventType.NodeDisabledV1}
+   *
+   * @param reason Reason why the node is disabled
+   * @returns A promise that resolves to a node state
+   */
+  public disable(reason: string): Promise<NodeState> {
+    switch (this.currentState.name) {
+      case NodeStateName.Enabled:
+        const nodeEvent: NodeDisabledV1 = {
+          aggregateId: this.aggregateId,
+          eventType: NodeEventType.DisabledV1,
+          payload: {
+            reason
+          }
+        };
+        return this.emit(nodeEvent);
+      case NodeStateName.Disabled:
+        // Node is already disabled
+        return Promise.resolve(this.get());
+      case NodeStateName.Locked:
+        return Promise.reject(`Node ${this.aggregateId} cannot be disabled because it is locked`);
+      default:
+        return Promise.reject(`Node ${this.aggregateId} cannot be disabled because it does not exist`);
+    }
+  }
+
+  /**
+   * Enable a node.
+   *
+   * Invariants:
+   * - State is Disabled => emit NodeEnabled event
+   * - State is Enabled => do nothing
+   * - State is Locked => fail "node is locked"
+   * - State is * => fail "node does not exist"
+   *
+   * Events:
+   * - {@link NodeEventType.NodeEnabledV1}
+   *
+   * @returns A promise that resolves to a node state
+   */
+  public enable(): Promise<NodeState> {
+    switch (this.currentState.name) {
+      case NodeStateName.Disabled:
+        const nodeEvent: NodeEnabledV1 = {
+          aggregateId: this.aggregateId,
+          eventType: NodeEventType.EnabledV1
+        };
+        return this.emit(nodeEvent);
+      case NodeStateName.Enabled:
+        // Node is already enabled
+        return Promise.resolve(this.get());
+      case NodeStateName.Locked:
+        return Promise.reject(`Node ${this.aggregateId} cannot be enabled because it is locked`);
+      default:
+        return Promise.reject(`Node ${this.aggregateId} cannot be enabled because it does not exist`);
+    }
+  }
+
+  /**
+   * Lock a node.
+   *
+   * Invariants:
+   * - State is Enabled|Disabled => emit NodeLocked event
+   * - State is Locked => do nothing
+   * - State is * => fail "node does not exist"
+   *
+   * Events:
+   * - {@link NodeEventType.NodeLockedV1}
+   *
+   * @returns A promise that resolves to a node state
+   */
+  public lock(): Promise<NodeState> {
+    switch (this.currentState.name) {
+      case NodeStateName.Enabled:
+      case NodeStateName.Disabled:
+        const nodeEvent: NodeLockedV1 = {
+          aggregateId: this.aggregateId,
+          eventType: NodeEventType.LockedV1
+        };
+        return this.emit(nodeEvent);
+      case NodeStateName.Locked:
+        // Node is already locked
+        return Promise.resolve(this.get());
+      default:
+        return Promise.reject(`Node ${this.aggregateId} cannot be locked because it does not exist`);
+    }
+  }
+
+  /**
+   * Unlock a node.
+   *
+   * Invariants:
+   * - State is Locked => emit NodeUnlocked event
+   * - State is Enabled|Disabled => do nothing
+   * - State is * => fail "node does not exist"
+   *
+   * Events:
+   * - {@link NodeEventType.NodeLockedV1}
+   *
+   * @returns A promise that resolves to a node state
+   */
+  public unlock(): Promise<NodeState> {
+    switch (this.currentState.name) {
+      case NodeStateName.Locked:
+        const nodeEvent: NodeUnlockedV1 = {
+          aggregateId: this.aggregateId,
+          eventType: NodeEventType.UnlockedV1
+        };
+        return this.emit(nodeEvent);
+      case NodeStateName.Enabled:
+      case NodeStateName.Disabled:
+        // Node is already unlocked
+        return Promise.resolve(this.get());
+      default:
+        return Promise.reject(`Node ${this.aggregateId} cannot be unlocked because it does not exist`);
+    }
+  }
+
+  /**
+   * Aggregate a snapshot to the current node state.
    *
    * Actions:
    * - Replace current state with snapshotted state
    *
    * @param snapshot Snapshot
    */
-  protected aggregateSnapshot(snapshot: Snapshot) {
-    this.currentState = snapshot.payload as State<Node>;
+  protected aggregateSnapshot(snapshot: Snapshot): void {
+    this.currentState = snapshot.payload as NodeState;
   }
 
   /**
-   * Aggregate {@link Event} to the current state.
+   * Aggregate an event to the current node state.
    *
    * @param event Event
    */
-  protected aggregateEvent(event: Event) {
+  protected aggregateEvent(event: Event): void {
     switch (event.eventType) {
       case NodeEventType.CreatedV1:
-        this.aggregateNodeCreatedV1(event);
+        this.aggregateNodeCreatedV1(event as NodeCreatedV1);
         break;
       case NodeEventType.PropertiesUpdatedV1:
-        this.aggregateNodePropertiesUpdatedV1(event);
+        this.aggregateNodePropertiesUpdatedV1(event as NodePropertiesUpdatedV1);
+        break;
+      case NodeEventType.EnabledV1:
+        this.aggregateNodeEnabledV1(event as NodeEnabledV1);
+        break;
+      case NodeEventType.DisabledV1:
+        this.aggregateNodeDisabledV1(event as NodeDisabledV1);
+        break;
+      case NodeEventType.LockedV1:
+        this.aggregateNodeLockedV1(event as NodeLockedV1);
+        break;
+      case NodeEventType.UnlockedV1:
+        this.aggregateNodeUnlockedV1(event as NodeUnlockedV1);
         break;
       case NodeEventType.DeletedV1:
-        this.aggregateNodeDeletedV1(event);
+        this.aggregateNodeDeletedV1(event as NodeDeletedV1);
         break;
       default:
         throw new Error(`Event ${event.eventType} not supported by NodeAggregate.`);
@@ -166,70 +375,123 @@ export class NodeAggregate extends Aggregate<State<Node>> implements INodeAggreg
   }
 
   /**
-   * Aggregate NodeCreated event to the current state.
+   * Aggregate a {@link NodeCreatedV1} event to the current node state.
    *
    * Actions:
-   * - Create a new node entity.
-   * - Move to state {@link NodeStateName.Active}.
+   * - Create a new node.
+   * - Set node state to {@link NodeStateName.Active}.
    *
-   * @param event Node created event V1
+   * @param event Event
    */
-  private aggregateNodeCreatedV1(event: Event) {
-    const payload = event.payload as NodeCreatedV1Payload;
-
+  private aggregateNodeCreatedV1(event: NodeCreatedV1): void {
+    // create new node
     const node: Node = {
-      id: event.aggregateId,
-      mappingName: payload.mappingName,
-      properties: payload.properties
+      nodeId: event.aggregateId,
+      ...event.payload
     };
 
+    // update aggregate
     this.currentState = {
-      stateName: NodeStateName.Active,
-      payload: node
+      name: NodeStateName.Enabled,
+      node
     };
   }
 
   /**
-   * Aggregate NodePropertiesUpdated event to the current state.
+   * Aggregate {@link NodePropertiesUpdatedV1} event to the current node state.
    *
    * Actions:
    * - Set properties to the existing node.
    *
-   * @param event Node properties update event V1
+   * @param event Event
    */
-  private aggregateNodePropertiesUpdatedV1(event: Event) {
-    const currentNode = this.currentState.payload;
-    const payload = event.payload as NodePropertiesUpdatedV1Payload;
-
-    if (!currentNode) {
+  private aggregateNodePropertiesUpdatedV1(event: NodePropertiesUpdatedV1): void {
+    if (!this.currentState.node) {
       throw new Error(
         `State payload is missing in node ${event.aggregateId}. NodePropertiesUpdatedV1 cannot be aggregated.`
       );
     }
 
+    // update node
     const node: Node = {
-      ...currentNode,
-      properties: payload.properties
+      ...this.currentState.node,
+      ...event.payload
     };
 
+    // update state
     this.currentState = {
-      stateName: NodeStateName.Active,
-      payload: node
+      name: NodeStateName.Enabled,
+      node
     };
   }
 
   /**
-   * Aggregate NodeDeleted event to the current state.
+   * Aggregate {@link NodeEnabledV1} event to the current node state.
    *
    * Actions:
-   * - Move to state {@link NodeStateName.Deleted}.
+   * - Set node state to {@link NodeStateName.Enabled}.
    *
-   * @param event Node deleted event V1
+   * @param event Event
    */
-  private aggregateNodeDeletedV1(event: Event) {
-    const node = this.currentState.payload;
+  private aggregateNodeEnabledV1(event: NodeEnabledV1): void {
+    if (!this.currentState.node) {
+      throw new Error(`State payload is missing in node ${event.aggregateId}. NodeEnabledV1 cannot be aggregated.`);
+    }
+
+    // update state
     this.currentState = {
-      stateName: NodeStateName.Deleted
+      name: NodeStateName.Enabled,
+      node: this.currentState.node
+    };
+  }
+
+  private aggregateNodeDisabledV1(event: NodeDisabledV1): void {
+    if (!this.currentState.node) {
+      throw new Error(`State payload is missing in node ${event.aggregateId}. NodeDisabledV1 cannot be aggregated.`);
+    }
+
+    // update state
+    this.currentState = {
+      name: NodeStateName.Disabled,
+      node: this.currentState.node
+    };
+  }
+
+  private aggregateNodeLockedV1(event: NodeLockedV1): void {
+    if (!this.currentState.node) {
+      throw new Error(`State payload is missing in node ${event.aggregateId}. NodeLockedV1 cannot be aggregated.`);
+    }
+
+    // update state
+    this.currentState = {
+      name: NodeStateName.Locked,
+      node: this.currentState.node
+    };
+  }
+
+  private aggregateNodeUnlockedV1(event: NodeUnlockedV1): void {
+    if (!this.currentState.node) {
+      throw new Error(`State payload is missing in node ${event.aggregateId}. NodeUnlockedV1 cannot be aggregated.`);
+    }
+
+    // update state
+    this.currentState = {
+      name: NodeStateName.Enabled,
+      node: this.currentState.node
+    };
+  }
+
+  /**
+   * Aggregate {@link NodeDeletedV1} event to the current node state.
+   *
+   * Actions:
+   * - Set node state to {@link NodeStateName.Deleted}.
+   *
+   * @param event Event
+   */
+  private aggregateNodeDeletedV1(event: NodeDeletedV1): void {
+    this.currentState = {
+      name: NodeStateName.Deleted
     };
   }
 }

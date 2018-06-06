@@ -8,33 +8,42 @@ import {
   MappingProperties,
   MappingPropertyType,
   MappingNestedProperty,
-  MappingProperty
+  MappingProperty,
+  MappingId
 } from "../../src/model/Mapping";
-import { Node, NodeProperties } from "../../src/model/Node";
+import { Node, NodeProperties, NodeId } from "../../src/model/Node";
 import { Audit } from "../../src/model/Audit";
 
 // context
 import { AuthenticationContext, ExecutionContext } from "../../src/service/ExecutionContext";
 
 export class TestDataGenerator {
+  public static randomMappingId(): MappingId {
+    return this.randomUUID();
+  }
+
   public static fullMapping(): Mapping {
     return {
-      id: this.randomUUID(),
-      name: faker.random.word(),
+      mappingId: this.randomMappingId(),
+      name: this.randomMappingName(),
       properties: this.fullMappingProperties()
     };
   }
 
   public static randomMapping(): Mapping {
     return {
-      id: this.randomUUID(),
-      name: faker.random.word(),
+      mappingId: this.randomMappingId(),
+      name: this.randomMappingName(),
       properties: this.randomMappingProperties()
     };
   }
 
   public static randomMappingName(): string {
-    return faker.random.word().replace(" ", "");
+    return faker.random
+      .words(3)
+      .replace(/[\s-]/g, "")
+      .slice(0, 10)
+      .toLowerCase();
   }
 
   public static fullMappingProperties(): MappingProperties {
@@ -161,9 +170,13 @@ export class TestDataGenerator {
     return properties;
   }
 
+  public static randomNodeId(): NodeId {
+    return this.randomUUID();
+  }
+
   public static randomFullNode(): Node {
     return {
-      id: this.randomUUID(),
+      nodeId: this.randomNodeId(),
       mappingName: this.randomMappingName(),
       properties: this.randomFullNodeProperties()
     };
@@ -171,7 +184,7 @@ export class TestDataGenerator {
 
   public static randomNode(): Node {
     return {
-      id: this.randomUUID(),
+      nodeId: this.randomNodeId(),
       mappingName: this.randomMappingName(),
       properties: this.randomNodeProperties()
     };

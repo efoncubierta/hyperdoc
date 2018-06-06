@@ -21,14 +21,14 @@ export class NodeDynamoDBStore extends DynamoDBStore implements NodeStore {
     this.nodesTableConfig = Hyperdoc.config().aws.dynamodb.nodes;
   }
 
-  public get(uuid: string): Promise<Option<Node>> {
+  public get(nodeId: string): Promise<Option<Node>> {
     const documentClient = new DynamoDB.DocumentClient();
 
     return documentClient
       .get({
         TableName: this.nodesTableConfig.tableName,
         Key: {
-          uuid
+          nodeId
         }
       })
       .promise()
@@ -37,14 +37,14 @@ export class NodeDynamoDBStore extends DynamoDBStore implements NodeStore {
       });
   }
 
-  public delete(uuid: string): Promise<void> {
+  public delete(nodeId: string): Promise<void> {
     const documentClient = new DynamoDB.DocumentClient();
 
     return documentClient
       .delete({
         TableName: this.nodesTableConfig.tableName,
         Key: {
-          uuid
+          nodeId
         }
       })
       .promise()

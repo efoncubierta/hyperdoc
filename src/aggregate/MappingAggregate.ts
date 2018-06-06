@@ -1,53 +1,82 @@
 // Eventum dependencies
-import { Aggregate, AggregateConfig, Snapshot, State, Event } from "eventum-sdk";
+import { Aggregate, AggregateConfig, Snapshot, Event } from "eventum-sdk";
+
+// Hyperdoc configuration
+import { Hyperdoc } from "../Hyperdoc";
 
 // Hyperdoc models
-import { Mapping, MappingProperties, MappingId } from "../model/Mapping";
+import { Mapping, MappingProperties, MappingId, MappingStateName, MappingState } from "../model/Mapping";
 
 // Hyperdoc events
-import { MappingStateName } from "./MappingStateName";
-import { MappingEventType } from "../event/MappingEventType";
-import { MappingCreatedV1Payload, MappingPropertiesUpdatedV1Payload } from "../event/MappingEventPayload";
+import {
+  MappingCreatedV1,
+  MappingPropertiesUpdatedV1,
+  MappingDeletedV1,
+  MappingEventType
+} from "../event/MappingEvent";
 
+/**
+ * Mapping aggregate definition.
+ *
+ * This aggregate manages mapping states.
+ */
 export interface IMappingAggregate {
-  create(name: string, properties: MappingProperties): Promise<State<Mapping>>;
-  setProperties(properties: MappingProperties): Promise<State<Mapping>>;
-  delete(): Promise<State<Mapping>>;
+  /**
+   * Create a new mapping.
+   *
+   * @param name Mapping name
+   * @param properties Mapping properties
+   * @returns Promise that resolves to a mapping state
+   */
+  create(name: string, properties: MappingProperties): Promise<MappingState>;
+
+  /**
+   * Set mapping properties.
+   *
+   * @param properties Mapping properties
+   * @returns Promise that resolves to a mapping state
+   */
+  setProperties(properties: MappingProperties): Promise<MappingState>;
+
+  /**
+   * Delete a mapping
+   *
+   * @returns Promise that resolves to a mapping state
+   */
+  delete(): Promise<MappingState>;
 }
 
 /**
- * FSM aggregate to handle {@link MappingCommand}.
+ * Mapping aggregate.
  */
-export class MappingAggregate extends Aggregate<State<Mapping>> implements IMappingAggregate {
-  private currentState: State<Mapping> = {
-    stateName: MappingStateName.New
+export class MappingAggregate extends Aggregate<MappingState> implements IMappingAggregate {
+  // default current state is New
+  private currentState: MappingState = {
+    name: MappingStateName.New
   };
 
   /**
-   * Constructor.
+   * Create and rehydrate a mapping aggregate.
    *
    * @param mappingId Mapping ID
-   * @param config Aggregate configuration
+   * @returns Promise that resolves to a mapping aggregate
    */
-  protected constructor(mappingId: MappingId, config: AggregateConfig) {
-    super(mappingId, config);
-  }
-
   public static build(mappingId: MappingId): Promise<MappingAggregate> {
-    const aggregate = new MappingAggregate(mappingId, {
-      snapshot: {
-        delta: 5
-      }
-    });
-    return aggregate.rehydrate().then(() => {
-      return aggregate;
+    // aggregate config for node aggregate
+    const aggregateConfig = Hyperdoc.config().eventum.aggregate.mapping;
+
+    // create aggregate
+    const nodeAggregate = new MappingAggregate(mappingId, aggregateConfig);
+
+    return nodeAggregate.rehydrate().then(() => {
+      return nodeAggregate;
     });
   }
 
   /**
-   * Get current mapping.
+   * Get current mapping state.
    */
-  public get(): State<Mapping> {
+  public get(): MappingState {
     return this.currentState;
   }
 
@@ -55,26 +84,27 @@ export class MappingAggregate extends Aggregate<State<Mapping>> implements IMapp
    * Create a mapping.
    *
    * Invariants:
-   * - Mapping must not exist.
+   * - Mapping state = {@link MappingStateName.New}
    *
    * Events:
-   * - MappingCreated
+   * - {@link MappingEventType.CreatedV1}
    *
    * @param name Mapping name
    * @param properties Mapping properties
-   * @returns A promise with the mapping state
+   * @returns A promise that resolves to a mapping state
    */
-  public create(name: string, properties: MappingProperties): Promise<State<Mapping>> {
-    switch (this.currentState.stateName) {
+  public create(name: string, properties: MappingProperties): Promise<MappingState> {
+    switch (this.currentState.name) {
       case MappingStateName.New:
-        return this.emit({
+        const mappingEvent: MappingCreatedV1 = {
           aggregateId: this.aggregateId,
           eventType: MappingEventType.CreatedV1,
           payload: {
             name,
             properties
           }
-        });
+        };
+        return this.emit(mappingEvent);
       default:
         return Promise.reject(`Mapping ${this.aggregateId} already exists.`);
     }
@@ -84,24 +114,25 @@ export class MappingAggregate extends Aggregate<State<Mapping>> implements IMapp
    * Set mapping properties.
    *
    * Invariants:
-   * - Entity must exist and not be deleted.
+   * - Mapping state = {@link MappingStateName.Active}
    *
    * Events:
-   * - MappingPropertiesUpdated
+   * - {@link MappingEventType.PropertiesUpdatedV1}
    *
    * @param properties Mapping properties
-   * @returns A promise with the mapping state
+   * @returns A promise that resolves to a mapping state
    */
-  public setProperties(properties: MappingProperties): Promise<State<Mapping>> {
-    switch (this.currentState.stateName) {
-      case MappingStateName.Active:
-        return this.emit({
+  public setProperties(properties: MappingProperties): Promise<MappingState> {
+    switch (this.currentState.name) {
+      case MappingStateName.Enabled:
+        const mappingEvent: MappingPropertiesUpdatedV1 = {
           aggregateId: this.aggregateId,
           eventType: MappingEventType.PropertiesUpdatedV1,
           payload: {
             properties
           }
-        });
+        };
+        return this.emit(mappingEvent);
       default:
         return Promise.reject(
           `Cannot set properties on mapping ${this.aggregateId}. It doesn't exist or it's been deleted.`
@@ -113,52 +144,53 @@ export class MappingAggregate extends Aggregate<State<Mapping>> implements IMapp
    * Delete a mapping.
    *
    * Invariants:
-   * - Entity must exist and not be deleted.
+   * - Mapping state = {@link MappingStateName.Active}
    *
    * Events:
-   * - MappingDeleted
+   * - {@link MappingEventType.DeletedV1}
    *
-   * @returns A promise with the mapping state
+   * @returns A promise that resolves to a mapping state
    */
-  public delete(): Promise<State<Mapping>> {
-    switch (this.currentState.stateName) {
-      case MappingStateName.Active:
-        return this.emit({
+  public delete(): Promise<MappingState> {
+    switch (this.currentState.name) {
+      case MappingStateName.Enabled:
+        const mappingEvent: MappingDeletedV1 = {
           aggregateId: this.aggregateId,
           eventType: MappingEventType.DeletedV1
-        });
+        };
+        return this.emit(mappingEvent);
       default:
         return Promise.reject(new Error(`Mapping ${this.aggregateId} doesn't exist and cannot be deleted`));
     }
   }
 
   /**
-   * Aggregate {@link Snapshot} to the current state.
+   * Aggregate a snapshot to the current mapping state.
    *
    * Actions:
    * - Replace current state with snapshotted state
    *
    * @param snapshot Snapshot
    */
-  protected aggregateSnapshot(snapshot: Snapshot) {
-    this.currentState = snapshot.payload as State<Mapping>;
+  protected aggregateSnapshot(snapshot: Snapshot): void {
+    this.currentState = snapshot.payload as MappingState;
   }
 
   /**
-   * Aggregate {@link Event} to the current state.
+   * Aggregate an event to the current mapping state.
    *
    * @param event Event
    */
-  protected aggregateEvent(event: Event) {
+  protected aggregateEvent(event: Event): void {
     switch (event.eventType) {
       case MappingEventType.CreatedV1:
-        this.aggregateMappingCreatedV1(event);
+        this.aggregateMappingCreatedV1(event as MappingCreatedV1);
         break;
       case MappingEventType.PropertiesUpdatedV1:
-        this.aggregateMappingPropertiesUpdatedV1(event);
+        this.aggregateMappingPropertiesUpdatedV1(event as MappingPropertiesUpdatedV1);
         break;
       case MappingEventType.DeletedV1:
-        this.aggregateMappingDeletedV1(event);
+        this.aggregateMappingDeletedV1(event as MappingDeletedV1);
         break;
       default:
         throw new Error(`Event ${event.eventType} not supported by MappingAggregate.`);
@@ -166,39 +198,37 @@ export class MappingAggregate extends Aggregate<State<Mapping>> implements IMapp
   }
 
   /**
-   * Aggregate MappingCreated event to the current state.
+   * Aggregate {@link MappingCreatedV1} event to the current mapping state.
    *
    * Actions:
-   * - Create a new mapping entity.
-   * - Move to state {@link MappingStateName.Active}.
+   * - Create a new mapping.
+   * - Set mapping state to {@link MappingStateName.Active}.
    *
-   * @param event Mapping created event V1
+   * @param event Event
    */
-  private aggregateMappingCreatedV1(event: Event) {
-    const payload = event.payload as MappingCreatedV1Payload;
+  private aggregateMappingCreatedV1(event: MappingCreatedV1): void {
     const mapping: Mapping = {
-      id: event.aggregateId,
-      name: payload.name,
-      properties: payload.properties
+      mappingId: event.aggregateId,
+      name: event.payload.name,
+      properties: event.payload.properties
     };
 
     this.currentState = {
-      stateName: MappingStateName.Active,
-      payload: mapping
+      name: MappingStateName.Enabled,
+      mapping
     };
   }
 
   /**
-   * Aggregate MappingPropertiesUpdated event to the current state.
+   * Aggregate {@link MappingPropertiesUpdatedV1} event to the current mapping state.
    *
    * Actions:
    * - Set properties to the existing mapping.
    *
-   * @param event Mapping properties update event V1
+   * @param event Event
    */
-  private aggregateMappingPropertiesUpdatedV1(event: Event) {
-    const currentMapping = this.currentState.payload;
-    const payload = event.payload as MappingPropertiesUpdatedV1Payload;
+  private aggregateMappingPropertiesUpdatedV1(event: MappingPropertiesUpdatedV1): void {
+    const currentMapping = this.currentState.mapping;
 
     if (!currentMapping) {
       throw new Error(
@@ -208,27 +238,26 @@ export class MappingAggregate extends Aggregate<State<Mapping>> implements IMapp
 
     const mapping: Mapping = {
       ...currentMapping,
-      properties: payload.properties
+      properties: event.payload.properties
     };
 
     this.currentState = {
-      stateName: MappingStateName.Active,
-      payload: mapping
+      name: MappingStateName.Enabled,
+      mapping
     };
   }
 
   /**
-   * Aggregate MappingDeleted event to the current state.
+   * Aggregate {@link MappingDeletedV1} event to the current mapping state.
    *
    * Actions:
-   * - Move to state {@link MappingStateName.Deleted}.
+   * - Set mapping state to {@link MappingStateName.Deleted}.
    *
-   * @param event Mapping deleted event V1
+   * @param event Event
    */
-  private aggregateMappingDeletedV1(event: Event) {
-    const mapping = this.currentState.payload;
+  private aggregateMappingDeletedV1(event: MappingDeletedV1): void {
     this.currentState = {
-      stateName: MappingStateName.Deleted
+      name: MappingStateName.Deleted
     };
   }
 }

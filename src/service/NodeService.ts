@@ -4,16 +4,15 @@ import { Option } from "fp-ts/lib/Option";
 
 // Hyperdoc models
 import { Audit } from "../model/Audit";
-import { Node, NodeProperties, NodeId } from "../model/Node";
+import { Node, NodeProperties, NodeId, NodeStateName, NodeState } from "../model/Node";
 import { Mapping } from "../model/Mapping";
 
 // Hyperdoc model schemas
-import { NodeValidator } from "../validation/NodeValidator";
+import { SchemaValidator } from "../validation/SchemaValidator";
 import { NodeSchema, NodePropertiesSchema } from "../validation/schemas/NodeSchema";
 
 // Hyperdoc aggregates
 import { NodeAggregate } from "../aggregate/NodeAggregate";
-import { NodeStateName } from "../aggregate/NodeStateName";
 
 // Hyperdoc services
 import { MappingService } from "./MappingService";
@@ -43,38 +42,27 @@ export class NodeService {
    *
    * @param context Execution context
    * @param mappingName Name of the mapping
-   * @param nodeProperties Node properties
+   * @param properties Node properties
    *
    * @returns A promise that resolves the node just created
    */
-  public static create(context: ExecutionContext, mappingName: string, nodeProperties: NodeProperties): Promise<Node> {
+  public static create(context: ExecutionContext, mappingName: string, properties: NodeProperties): Promise<Node> {
     // TODO validation
     // TODO check permissions
 
     // new node UUID
     const nodeId = UUID.v1();
 
-    return MappingService.getByName(context, mappingName)
-      .then((mappingOpt) => {
-        // validate properties
-        const mapping = mappingOpt.fold(undefined, (m) => m);
-        NodeService.validateNodeProperties(nodeProperties, mapping);
+    return MappingService.getByName(context, mappingName).then((mappingOpt) => {
+      // validate properties
+      const mapping = mappingOpt.fold(undefined, (m) => m);
+      NodeService.validateNodeProperties(properties, mapping);
 
-        // get the aggregate for the new node
-        return NodeService.getAggregate(nodeId);
-      })
-      .then((aggregate) => {
-        // node aggregate checks whether the node already exist before creating it
-        return aggregate.create(mappingName, nodeProperties);
-      })
-      .then((nodeState) => {
-        // if state is active and has a payload, then return it. Fail otherwise
-        if (nodeState.stateName === NodeStateName.Active && nodeState.payload) {
-          return nodeState.payload;
-        } else {
-          throw new Error(`Node ${nodeId} is in an inconsistent state`);
-        }
-      });
+      // invoke create() in the aggregate. New state must be "Enabled"
+      return this.runAggregate(nodeId)((aggregate) => aggregate.create(mappingName, properties), [
+        NodeStateName.Enabled
+      ]);
+    });
   }
 
   /**
@@ -82,15 +70,11 @@ export class NodeService {
    *
    * @param context Execution context
    * @param nodeId Node UUID
-   * @param nodeProperties Node properties
+   * @param properties Node properties
    *
    * @returns A promise that resolves the node just updated
    */
-  public static setProperties(
-    context: ExecutionContext,
-    nodeId: NodeId,
-    nodeProperties: NodeProperties
-  ): Promise<Node> {
+  public static setProperties(context: ExecutionContext, nodeId: NodeId, properties: NodeProperties): Promise<Node> {
     // TODO validation
     // TODO check permissions
 
@@ -110,39 +94,100 @@ export class NodeService {
       .then((mappingOpt) => {
         // validate properties
         const mapping = mappingOpt.fold(undefined, (m) => m);
-        NodeService.validateNodeProperties(nodeProperties, mapping);
+        NodeService.validateNodeProperties(properties, mapping);
 
-        // get node aggregate
-        return NodeService.getAggregate(nodeId);
-      })
-      .then((aggregate) => {
-        // mapping aggregate check whether the mapping exist before executing the SetNodeProperties command
-        return aggregate.setProperties(nodeProperties);
-      })
-      .then((nodeState) => {
-        // if state is active and has a payload, then return it. Fail otherwise
-        if (nodeState.stateName === NodeStateName.Active && nodeState.payload) {
-          return nodeState.payload;
-        } else {
-          throw new Error(`Node ${nodeId} is in an inconsistent state`);
-        }
+        // invoke setProperties() in the aggregate. New state must be "Enabled"
+        return this.runAggregate(nodeId)((aggregate) => aggregate.setProperties(properties), [NodeStateName.Enabled]);
       });
+  }
+
+  public static delete(context: ExecutionContext, nodeId: NodeId): Promise<Node> {
+    return this.runAggregate(nodeId)((aggregate) => aggregate.delete(), [NodeStateName.Deleted], false);
+  }
+
+  public static enable(context: ExecutionContext, nodeId: NodeId): Promise<Node> {
+    // invoke lock() in the aggregate. New state must be "Locked"
+    return this.runAggregate(nodeId)((aggregate) => aggregate.enable(), [NodeStateName.Enabled]);
+  }
+
+  public static disable(context: ExecutionContext, nodeId: NodeId, reason: string): Promise<Node> {
+    // invoke lock() in the aggregate. New state must be "Enabled"
+    return this.runAggregate(nodeId)((aggregate) => aggregate.disable(reason), [NodeStateName.Disabled]);
+  }
+
+  public static lock(context: ExecutionContext, nodeId: NodeId): Promise<Node> {
+    // invoke lock() in the aggregate. New state must be "Locked"
+    return this.runAggregate(nodeId)((aggregate) => aggregate.lock(), [NodeStateName.Locked]);
+  }
+
+  public static unlock(context: ExecutionContext, nodeId: NodeId): Promise<Node> {
+    // invoke lock() in the aggregate. New state must be "Enabled"
+    return this.runAggregate(nodeId)((aggregate) => aggregate.unlock(), [NodeStateName.Enabled]);
+  }
+
+  public static exists(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
+    return this.isInState(nodeId, [NodeStateName.Enabled, NodeStateName.Disabled, NodeStateName.Locked]);
+  }
+
+  public static isEnabled(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
+    return this.isInState(nodeId, [NodeStateName.Enabled]);
+  }
+
+  public static isDisabled(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
+    return this.isInState(nodeId, [NodeStateName.Disabled]);
+  }
+
+  public static isLocked(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
+    return this.isInState(nodeId, [NodeStateName.Locked]);
+  }
+
+  public static isUnlocked(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
+    return this.isInState(nodeId, [NodeStateName.Enabled, NodeStateName.Disabled]);
+  }
+
+  public static isDeleted(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
+    return this.isInState(nodeId, [NodeStateName.Deleted]);
+  }
+
+  private static isInState(nodeId: NodeId, expectedStates: NodeStateName[]): Promise<boolean> {
+    return this.getAggregate(nodeId).then((aggregate) => {
+      const state = aggregate.get();
+      return expectedStates.indexOf(state.name) >= 0;
+    });
+  }
+
+  private static runAggregate(nodeId: NodeId): RunAggregateF {
+    return (invoke: AggregateInvokeF, expectedStates: NodeStateName[], hasPayload: boolean = true) => {
+      return this.getAggregate(nodeId)
+        .then((aggregate) => {
+          return invoke(aggregate);
+        })
+        .then((nodeState) => {
+          if (expectedStates.indexOf(nodeState.name) >= 0 && (!hasPayload || nodeState.node)) {
+            return nodeState.node;
+          } else {
+            throw new Error(`Node ${nodeId} is in an inconsistent state`);
+          }
+        });
+    };
   }
 
   /**
    * Validate a node properties against a mapping.
    *
-   * @param nodeProperties Node properties
+   * @param properties Node properties
    * @param mapping Mapping
    *
    * @throws An error if the validation doesn't pass
    */
-  private static validateNodeProperties(nodeProperties: NodeProperties, mapping?: Mapping) {
+  private static validateNodeProperties(properties: NodeProperties, mapping?: Mapping) {
     // get a validator for the mapping or default node validator if new mapping
-    const validator = mapping ? NodeValidator.getValidatorFromMapping(mapping) : NodeValidator.getDefaultValidator();
+    const validator = mapping
+      ? SchemaValidator.getModelValidatorFromMapping(mapping)
+      : SchemaValidator.getModelValidator();
 
     // validate node against the JSON schema and process errors
-    const result = validator.validate(nodeProperties, NodePropertiesSchema);
+    const result = validator.validate(properties, NodePropertiesSchema);
     if (result.errors.length > 0) {
       // TODO handle multiple errors
       throw new Error(result.errors[0].message);
@@ -153,3 +198,6 @@ export class NodeService {
     return NodeAggregate.build(nodeId);
   }
 }
+
+type AggregateInvokeF = (aggregate: NodeAggregate) => Promise<NodeState>;
+type RunAggregateF = (invoke: AggregateInvokeF, expectedStates: NodeStateName[], hasPayload?: boolean) => Promise<Node>;
