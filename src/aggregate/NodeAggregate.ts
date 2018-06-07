@@ -1,5 +1,5 @@
 // Eventum dependencies
-import { Aggregate, AggregateConfig, Snapshot, State, Event } from "eventum-sdk";
+import { Aggregate, AggregateConfig, Snapshot, State, Event, EventInput } from "eventum-sdk";
 
 // Hyperdoc configuration
 import { Hyperdoc } from "../Hyperdoc";
@@ -17,7 +17,10 @@ import {
   NodeLockedV1,
   NodeUnlockedV1,
   NodeDisabledV1,
-  NodeEnabledV1
+  NodeEnabledV1,
+  NodeCreatedV1Payload,
+  NodePropertiesUpdatedV1Payload,
+  NodeDisabledV1Payload
 } from "../event/NodeEvent";
 
 /**
@@ -124,13 +127,14 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
   public create(mappingName: string, properties: NodeProperties): Promise<NodeState> {
     switch (this.currentState.name) {
       case NodeStateName.New:
-        const nodeEvent: NodeCreatedV1 = {
+        const nodeEventPayload: NodeCreatedV1Payload = {
+          mappingName,
+          properties
+        };
+        const nodeEvent: EventInput = {
           aggregateId: this.aggregateId,
           eventType: NodeEventType.CreatedV1,
-          payload: {
-            mappingName,
-            properties
-          }
+          payload: nodeEventPayload
         };
         return this.emit(nodeEvent);
       default:
@@ -156,12 +160,13 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
   public setProperties(properties: NodeProperties): Promise<NodeState> {
     switch (this.currentState.name) {
       case NodeStateName.Enabled:
-        const nodeEvent: NodePropertiesUpdatedV1 = {
+        const nodeEventPayload: NodePropertiesUpdatedV1Payload = {
+          properties
+        };
+        const nodeEvent: EventInput = {
           aggregateId: this.aggregateId,
           eventType: NodeEventType.PropertiesUpdatedV1,
-          payload: {
-            properties
-          }
+          payload: nodeEventPayload
         };
         return this.emit(nodeEvent);
       case NodeStateName.Locked:
@@ -189,7 +194,7 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
     switch (this.currentState.name) {
       case NodeStateName.Enabled:
       case NodeStateName.Disabled:
-        const nodeEvent: NodeDeletedV1 = {
+        const nodeEvent: EventInput = {
           aggregateId: this.aggregateId,
           eventType: NodeEventType.DeletedV1
         };
@@ -219,12 +224,13 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
   public disable(reason: string): Promise<NodeState> {
     switch (this.currentState.name) {
       case NodeStateName.Enabled:
-        const nodeEvent: NodeDisabledV1 = {
+        const nodeEventPayload: NodeDisabledV1Payload = {
+          reason
+        };
+        const nodeEvent: EventInput = {
           aggregateId: this.aggregateId,
           eventType: NodeEventType.DisabledV1,
-          payload: {
-            reason
-          }
+          payload: nodeEventPayload
         };
         return this.emit(nodeEvent);
       case NodeStateName.Disabled:
@@ -254,7 +260,7 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
   public enable(): Promise<NodeState> {
     switch (this.currentState.name) {
       case NodeStateName.Disabled:
-        const nodeEvent: NodeEnabledV1 = {
+        const nodeEvent: EventInput = {
           aggregateId: this.aggregateId,
           eventType: NodeEventType.EnabledV1
         };
@@ -286,7 +292,7 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
     switch (this.currentState.name) {
       case NodeStateName.Enabled:
       case NodeStateName.Disabled:
-        const nodeEvent: NodeLockedV1 = {
+        const nodeEvent: EventInput = {
           aggregateId: this.aggregateId,
           eventType: NodeEventType.LockedV1
         };
@@ -315,7 +321,7 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
   public unlock(): Promise<NodeState> {
     switch (this.currentState.name) {
       case NodeStateName.Locked:
-        const nodeEvent: NodeUnlockedV1 = {
+        const nodeEvent: EventInput = {
           aggregateId: this.aggregateId,
           eventType: NodeEventType.UnlockedV1
         };

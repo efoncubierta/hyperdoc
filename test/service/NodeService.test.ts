@@ -24,6 +24,10 @@ function nodeServiceTests() {
       AWSMock.enableMock();
     });
 
+    beforeEach(() => {
+      InMemoryNodeStore.reset();
+    });
+
     after(() => {
       AWSMock.restoreMock();
     });
@@ -282,6 +286,18 @@ function nodeServiceTests() {
           // a disabled node should not be enabled
           chai.should().exist(enabled);
           enabled.should.be.false;
+
+          return NodeService.enable(testExecutionContext, nodeId);
+        })
+        .then((node) => {
+          chai.should().exist(node);
+
+          return NodeService.isEnabled(testExecutionContext, nodeId);
+        })
+        .then((enabled) => {
+          // a enabled node should be be enabled
+          chai.should().exist(enabled);
+          enabled.should.be.true;
 
           return NodeService.lock(testExecutionContext, nodeId);
         })

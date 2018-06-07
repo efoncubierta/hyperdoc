@@ -1,4 +1,4 @@
-import { EventInput } from "eventum-sdk";
+import { Event } from "eventum-sdk";
 import { NodeProperties } from "../model/Node";
 
 /**
@@ -17,7 +17,7 @@ export enum NodeEventType {
 /**
  * Node event.
  */
-export interface NodeEvent extends EventInput {
+export interface NodeEvent extends Event {
   readonly eventType: NodeEventType;
 }
 
@@ -26,10 +26,12 @@ export interface NodeEvent extends EventInput {
  */
 export interface NodeCreatedV1 extends NodeEvent {
   readonly eventType: NodeEventType.CreatedV1;
-  readonly payload: {
-    readonly mappingName: string;
-    readonly properties: NodeProperties;
-  };
+  readonly payload: NodeCreatedV1Payload;
+}
+
+export interface NodeCreatedV1Payload {
+  readonly mappingName: string;
+  readonly properties: NodeProperties;
 }
 
 /**
@@ -37,9 +39,11 @@ export interface NodeCreatedV1 extends NodeEvent {
  */
 export interface NodePropertiesUpdatedV1 extends NodeEvent {
   readonly eventType: NodeEventType.PropertiesUpdatedV1;
-  readonly payload: {
-    readonly properties: NodeProperties;
-  };
+  readonly payload: NodePropertiesUpdatedV1Payload;
+}
+
+export interface NodePropertiesUpdatedV1Payload {
+  readonly properties: NodeProperties;
 }
 
 /**
@@ -54,9 +58,11 @@ export interface NodeEnabledV1 extends NodeEvent {
  */
 export interface NodeDisabledV1 extends NodeEvent {
   readonly eventType: NodeEventType.DisabledV1;
-  readonly payload: {
-    readonly reason: string;
-  };
+  readonly payload: NodeDisabledV1Payload;
+}
+
+export interface NodeDisabledV1Payload {
+  readonly reason: string;
 }
 
 /**

@@ -5,6 +5,7 @@ import { Eventum, EventumProvider } from "eventum-sdk";
 // test suites
 import graphqlTests from "./graphql";
 import aggregateTests from "./aggregate";
+import materializerTests from "./materializer";
 import serviceTests from "./service";
 import storeTests from "./store";
 import validationTests from "./validation";
@@ -36,7 +37,9 @@ describe("Hyperdoc", () => {
     Hyperdoc.resetConfig();
   });
 
+  graphqlTests();
   aggregateTests();
+  materializerTests();
   serviceTests();
   storeTests();
   validationTests();

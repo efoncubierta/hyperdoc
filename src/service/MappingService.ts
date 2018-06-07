@@ -87,7 +87,7 @@ export class MappingService {
       return mappingOpt.foldL(
         () => {
           // invoke create() in the aggregate. New state must be "Enabled"
-          return this.runAggregate(mappingId)((aggregate) => aggregate.create(name, properties), [
+          return MappingService.runAggregate(mappingId)((aggregate) => aggregate.create(name, properties), [
             MappingStateName.Enabled
           ]);
         },
@@ -119,12 +119,12 @@ export class MappingService {
     MappingService.validateMappingProperties(properties);
 
     // invoke setProperties() in the aggregate. New state must be "Enabled"
-    return this.runAggregate(mappingId)((aggregate) => aggregate.setProperties(properties), [MappingStateName.Enabled]);
+    return MappingService.runAggregate(mappingId)((aggregate) => aggregate.setProperties(properties), [MappingStateName.Enabled]);
   }
 
   private static runAggregate(mappingId: MappingId): RunAggregateF {
     return (invoke: AggregateInvokeF, expectedStates: MappingStateName[], hasPayload: boolean = true) => {
-      return this.getAggregate(mappingId)
+      return MappingService.getAggregate(mappingId)
         .then((aggregate) => {
           return invoke(aggregate);
         })

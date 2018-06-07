@@ -5,10 +5,8 @@ import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 import "mocha";
 
-// models
-import { Mapping, MappingStateName } from "../../src/model/Mapping";
-
-// aggregates
+// Hyperdoc dependencies
+import { MappingStateName } from "../../src/model/Mapping";
 import { MappingAggregate } from "../../src/aggregate/MappingAggregate";
 
 // test dependencies

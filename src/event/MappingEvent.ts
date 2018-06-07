@@ -1,4 +1,4 @@
-import { EventInput } from "eventum-sdk";
+import { Event } from "eventum-sdk";
 import { MappingProperties } from "../model/Mapping";
 
 /**
@@ -13,7 +13,7 @@ export enum MappingEventType {
 /**
  * Mapping event.
  */
-export interface MappingEvent extends EventInput {
+export interface MappingEvent extends Event {
   readonly eventType: MappingEventType;
 }
 
@@ -22,10 +22,12 @@ export interface MappingEvent extends EventInput {
  */
 export interface MappingCreatedV1 extends MappingEvent {
   readonly eventType: MappingEventType.CreatedV1;
-  readonly payload: {
-    readonly name: string;
-    readonly properties: MappingProperties;
-  };
+  readonly payload: MappingCreatedV1Payload;
+}
+
+export interface MappingCreatedV1Payload {
+  readonly name: string;
+  readonly properties: MappingProperties;
 }
 
 /**
@@ -33,9 +35,11 @@ export interface MappingCreatedV1 extends MappingEvent {
  */
 export interface MappingPropertiesUpdatedV1 extends MappingEvent {
   readonly eventType: MappingEventType.PropertiesUpdatedV1;
-  readonly payload: {
-    readonly properties: MappingProperties;
-  };
+  readonly payload: MappingPropertiesUpdatedV1Payload;
+}
+
+export interface MappingPropertiesUpdatedV1Payload {
+  readonly properties: MappingProperties;
 }
 
 /**

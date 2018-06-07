@@ -16,6 +16,7 @@ import {
 } from "./schemas/MappingSchema";
 
 import { MappingSchemaGenerator } from "./MappingSchemaGenerator";
+import { NodeProperties } from "../model/Node";
 
 /**
  * Schema validator.
@@ -79,5 +80,14 @@ export class SchemaValidator {
    */
   public static validateMappingProperties(properties: MappingProperties): ValidatorResult {
     return this.getModelValidator().validate(properties, MappingPropertiesSchema);
+  }
+
+  /**
+   * Validate node properties.
+   *
+   * @param properties Node properties
+   */
+  public static validateNodeProperties(properties: NodeProperties): ValidatorResult {
+    return this.getModelValidator().validate(properties, NodePropertiesSchema);
   }
 }

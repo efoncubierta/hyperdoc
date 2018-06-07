@@ -20,6 +20,7 @@ import { ExecutionContext } from "./ExecutionContext";
 
 // Hyperdoc stores
 import { StoreFactory } from "../store/StoreFactory";
+import { NodeServiceError } from "./NodeServiceError";
 
 /**
  * Service to manage nodes from the user space.
@@ -47,7 +48,6 @@ export class NodeService {
    * @returns A promise that resolves the node just created
    */
   public static create(context: ExecutionContext, mappingName: string, properties: NodeProperties): Promise<Node> {
-    // TODO validation
     // TODO check permissions
 
     // new node UUID
@@ -59,7 +59,7 @@ export class NodeService {
       NodeService.validateNodeProperties(properties, mapping);
 
       // invoke create() in the aggregate. New state must be "Enabled"
-      return this.runAggregate(nodeId)((aggregate) => aggregate.create(mappingName, properties), [
+      return NodeService.runAggregate(nodeId)((aggregate) => aggregate.create(mappingName, properties), [
         NodeStateName.Enabled
       ]);
     });
@@ -75,7 +75,6 @@ export class NodeService {
    * @returns A promise that resolves the node just updated
    */
   public static setProperties(context: ExecutionContext, nodeId: NodeId, properties: NodeProperties): Promise<Node> {
-    // TODO validation
     // TODO check permissions
 
     // get the node to be updated
@@ -84,7 +83,7 @@ export class NodeService {
         // get the node mapping, or throw and error if the node does not exist
         return nodeOpt.foldL(
           () => {
-            throw new Error(`Node ${nodeId} does not exist`);
+            throw new NodeServiceError(`Node ${nodeId} does not exist`);
           },
           (node) => {
             return MappingService.getByName(context, node.mappingName);
@@ -97,60 +96,63 @@ export class NodeService {
         NodeService.validateNodeProperties(properties, mapping);
 
         // invoke setProperties() in the aggregate. New state must be "Enabled"
-        return this.runAggregate(nodeId)((aggregate) => aggregate.setProperties(properties), [NodeStateName.Enabled]);
+        return NodeService.runAggregate(nodeId)((aggregate) => aggregate.setProperties(properties), [
+          NodeStateName.Enabled
+        ]);
       });
   }
 
   public static delete(context: ExecutionContext, nodeId: NodeId): Promise<Node> {
-    return this.runAggregate(nodeId)((aggregate) => aggregate.delete(), [NodeStateName.Deleted], false);
+    // invoke delete() in the aggregate. New state must be "Deleted" and has no payload
+    return NodeService.runAggregate(nodeId)((aggregate) => aggregate.delete(), [NodeStateName.Deleted], false);
   }
 
   public static enable(context: ExecutionContext, nodeId: NodeId): Promise<Node> {
-    // invoke lock() in the aggregate. New state must be "Locked"
-    return this.runAggregate(nodeId)((aggregate) => aggregate.enable(), [NodeStateName.Enabled]);
+    // invoke lock() in the aggregate. New state must be "Enabled"
+    return NodeService.runAggregate(nodeId)((aggregate) => aggregate.enable(), [NodeStateName.Enabled]);
   }
 
   public static disable(context: ExecutionContext, nodeId: NodeId, reason: string): Promise<Node> {
     // invoke lock() in the aggregate. New state must be "Enabled"
-    return this.runAggregate(nodeId)((aggregate) => aggregate.disable(reason), [NodeStateName.Disabled]);
+    return NodeService.runAggregate(nodeId)((aggregate) => aggregate.disable(reason), [NodeStateName.Disabled]);
   }
 
   public static lock(context: ExecutionContext, nodeId: NodeId): Promise<Node> {
     // invoke lock() in the aggregate. New state must be "Locked"
-    return this.runAggregate(nodeId)((aggregate) => aggregate.lock(), [NodeStateName.Locked]);
+    return NodeService.runAggregate(nodeId)((aggregate) => aggregate.lock(), [NodeStateName.Locked]);
   }
 
   public static unlock(context: ExecutionContext, nodeId: NodeId): Promise<Node> {
     // invoke lock() in the aggregate. New state must be "Enabled"
-    return this.runAggregate(nodeId)((aggregate) => aggregate.unlock(), [NodeStateName.Enabled]);
+    return NodeService.runAggregate(nodeId)((aggregate) => aggregate.unlock(), [NodeStateName.Enabled]);
   }
 
   public static exists(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
-    return this.isInState(nodeId, [NodeStateName.Enabled, NodeStateName.Disabled, NodeStateName.Locked]);
+    return NodeService.isInState(nodeId, [NodeStateName.Enabled, NodeStateName.Disabled, NodeStateName.Locked]);
   }
 
   public static isEnabled(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
-    return this.isInState(nodeId, [NodeStateName.Enabled]);
+    return NodeService.isInState(nodeId, [NodeStateName.Enabled]);
   }
 
   public static isDisabled(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
-    return this.isInState(nodeId, [NodeStateName.Disabled]);
+    return NodeService.isInState(nodeId, [NodeStateName.Disabled]);
   }
 
   public static isLocked(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
-    return this.isInState(nodeId, [NodeStateName.Locked]);
+    return NodeService.isInState(nodeId, [NodeStateName.Locked]);
   }
 
   public static isUnlocked(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
-    return this.isInState(nodeId, [NodeStateName.Enabled, NodeStateName.Disabled]);
+    return NodeService.isInState(nodeId, [NodeStateName.Enabled, NodeStateName.Disabled]);
   }
 
   public static isDeleted(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
-    return this.isInState(nodeId, [NodeStateName.Deleted]);
+    return NodeService.isInState(nodeId, [NodeStateName.Deleted]);
   }
 
   private static isInState(nodeId: NodeId, expectedStates: NodeStateName[]): Promise<boolean> {
-    return this.getAggregate(nodeId).then((aggregate) => {
+    return NodeService.getAggregate(nodeId).then((aggregate) => {
       const state = aggregate.get();
       return expectedStates.indexOf(state.name) >= 0;
     });
@@ -158,7 +160,7 @@ export class NodeService {
 
   private static runAggregate(nodeId: NodeId): RunAggregateF {
     return (invoke: AggregateInvokeF, expectedStates: NodeStateName[], hasPayload: boolean = true) => {
-      return this.getAggregate(nodeId)
+      return NodeService.getAggregate(nodeId)
         .then((aggregate) => {
           return invoke(aggregate);
         })
@@ -166,7 +168,7 @@ export class NodeService {
           if (expectedStates.indexOf(nodeState.name) >= 0 && (!hasPayload || nodeState.node)) {
             return nodeState.node;
           } else {
-            throw new Error(`Node ${nodeId} is in an inconsistent state`);
+            throw new NodeServiceError(`Node ${nodeId} is in an inconsistent state`);
           }
         });
     };
@@ -189,8 +191,7 @@ export class NodeService {
     // validate node against the JSON schema and process errors
     const result = validator.validate(properties, NodePropertiesSchema);
     if (result.errors.length > 0) {
-      // TODO handle multiple errors
-      throw new Error(result.errors[0].message);
+      throw new NodeServiceError(result.errors[0].message);
     }
   }
 

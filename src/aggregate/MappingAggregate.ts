@@ -1,5 +1,5 @@
 // Eventum dependencies
-import { Aggregate, AggregateConfig, Snapshot, Event } from "eventum-sdk";
+import { Aggregate, AggregateConfig, Snapshot, Event, EventInput } from "eventum-sdk";
 
 // Hyperdoc configuration
 import { Hyperdoc } from "../Hyperdoc";
@@ -12,7 +12,9 @@ import {
   MappingCreatedV1,
   MappingPropertiesUpdatedV1,
   MappingDeletedV1,
-  MappingEventType
+  MappingEventType,
+  MappingCreatedV1Payload,
+  MappingPropertiesUpdatedV1Payload
 } from "../event/MappingEvent";
 
 /**
@@ -96,13 +98,14 @@ export class MappingAggregate extends Aggregate<MappingState> implements IMappin
   public create(name: string, properties: MappingProperties): Promise<MappingState> {
     switch (this.currentState.name) {
       case MappingStateName.New:
-        const mappingEvent: MappingCreatedV1 = {
+        const mappingEventPayload: MappingCreatedV1Payload = {
+          name,
+          properties
+        };
+        const mappingEvent: EventInput = {
           aggregateId: this.aggregateId,
           eventType: MappingEventType.CreatedV1,
-          payload: {
-            name,
-            properties
-          }
+          payload: mappingEventPayload
         };
         return this.emit(mappingEvent);
       default:
@@ -125,12 +128,13 @@ export class MappingAggregate extends Aggregate<MappingState> implements IMappin
   public setProperties(properties: MappingProperties): Promise<MappingState> {
     switch (this.currentState.name) {
       case MappingStateName.Enabled:
-        const mappingEvent: MappingPropertiesUpdatedV1 = {
+        const mappingEventPayload: MappingPropertiesUpdatedV1Payload = {
+          properties
+        };
+        const mappingEvent: EventInput = {
           aggregateId: this.aggregateId,
           eventType: MappingEventType.PropertiesUpdatedV1,
-          payload: {
-            properties
-          }
+          payload: mappingEventPayload
         };
         return this.emit(mappingEvent);
       default:
@@ -154,7 +158,7 @@ export class MappingAggregate extends Aggregate<MappingState> implements IMappin
   public delete(): Promise<MappingState> {
     switch (this.currentState.name) {
       case MappingStateName.Enabled:
-        const mappingEvent: MappingDeletedV1 = {
+        const mappingEvent: EventInput = {
           aggregateId: this.aggregateId,
           eventType: MappingEventType.DeletedV1
         };

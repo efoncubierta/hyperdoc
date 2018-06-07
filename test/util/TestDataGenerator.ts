@@ -1,6 +1,6 @@
 // external dependencies
 import * as faker from "faker";
-import { AggregateConfig } from "eventum-sdk";
+import { AggregateConfig, AggregateId, Event } from "eventum-sdk";
 
 // models
 import {
@@ -16,6 +16,27 @@ import { Audit } from "../../src/model/Audit";
 
 // context
 import { AuthenticationContext, ExecutionContext } from "../../src/service/ExecutionContext";
+import {
+  MappingCreatedV1,
+  MappingEventType,
+  MappingPropertiesUpdatedV1,
+  MappingDeletedV1,
+  MappingCreatedV1Payload,
+  MappingPropertiesUpdatedV1Payload
+} from "../../src/event/MappingEvent";
+import {
+  NodeCreatedV1,
+  NodeEventType,
+  NodePropertiesUpdatedV1,
+  NodeEnabledV1,
+  NodeDisabledV1,
+  NodeLockedV1,
+  NodeUnlockedV1,
+  NodeDeletedV1,
+  NodeCreatedV1Payload,
+  NodePropertiesUpdatedV1Payload,
+  NodeDisabledV1Payload
+} from "../../src/event/NodeEvent";
 
 export class TestDataGenerator {
   public static randomMappingId(): MappingId {
@@ -41,7 +62,7 @@ export class TestDataGenerator {
   public static randomMappingName(): string {
     return faker.random
       .words(3)
-      .replace(/[\s-]/g, "")
+      .replace(/[0-9-\s,._]/g, "")
       .slice(0, 10)
       .toLowerCase();
   }
@@ -277,6 +298,143 @@ export class TestDataGenerator {
   public static randomExecutionContext(): ExecutionContext {
     return {
       auth: this.randomAuthenticationContext()
+    };
+  }
+
+  public static randomMappingCreatedV1(mappingId?: MappingId, sequence?: number): MappingCreatedV1 {
+    return {
+      eventId: this.randomUUID(),
+      eventType: MappingEventType.CreatedV1,
+      occurredAt: faker.date.past(),
+      aggregateId: mappingId ? mappingId : this.randomMappingId(),
+      sequence: sequence >= 0 ? sequence : faker.random.number(1000),
+      payload: this.randomMappingCreatedV1Payload()
+    };
+  }
+
+  public static randomMappingCreatedV1Payload(): MappingCreatedV1Payload {
+    return {
+      name: this.randomMappingName(),
+      properties: this.randomMappingProperties()
+    };
+  }
+
+  public static randomMappingPropertiesUpdatedV1(mappingId?: MappingId, sequence?: number): MappingPropertiesUpdatedV1 {
+    return {
+      eventId: this.randomUUID(),
+      eventType: MappingEventType.PropertiesUpdatedV1,
+      occurredAt: faker.date.past(),
+      aggregateId: mappingId ? mappingId : this.randomMappingId(),
+      sequence: sequence >= 0 ? sequence : faker.random.number(1000),
+      payload: this.randomMappingPropertiesUpdatedV1Payload()
+    };
+  }
+
+  public static randomMappingPropertiesUpdatedV1Payload(): MappingPropertiesUpdatedV1Payload {
+    return {
+      properties: this.randomMappingProperties()
+    };
+  }
+
+  public static randomMappingDeletedV1(mappingId?: MappingId, sequence?: number): MappingDeletedV1 {
+    return {
+      eventId: this.randomUUID(),
+      eventType: MappingEventType.DeletedV1,
+      occurredAt: faker.date.past(),
+      aggregateId: mappingId ? mappingId : this.randomMappingId(),
+      sequence: sequence >= 0 ? sequence : faker.random.number(1000)
+    };
+  }
+
+  public static randomNodeCreatedV1(nodeId?: NodeId, sequence?: number): NodeCreatedV1 {
+    return {
+      eventId: this.randomUUID(),
+      eventType: NodeEventType.CreatedV1,
+      occurredAt: faker.date.past(),
+      aggregateId: nodeId ? nodeId : this.randomNodeId(),
+      sequence: sequence >= 0 ? sequence : faker.random.number(1000),
+      payload: this.randomNodeCreatedV1Payload()
+    };
+  }
+
+  public static randomNodeCreatedV1Payload(): NodeCreatedV1Payload {
+    return {
+      mappingName: this.randomMappingName(),
+      properties: this.randomNodeProperties()
+    };
+  }
+
+  public static randomNodePropertiesUpdatedV1(nodeId?: NodeId, sequence?: number): NodePropertiesUpdatedV1 {
+    return {
+      eventId: this.randomUUID(),
+      eventType: NodeEventType.PropertiesUpdatedV1,
+      occurredAt: faker.date.past(),
+      aggregateId: nodeId ? nodeId : this.randomNodeId(),
+      sequence: sequence >= 0 ? sequence : faker.random.number(1000),
+      payload: this.randomNodePropertiesUpdatedV1Payload()
+    };
+  }
+
+  public static randomNodePropertiesUpdatedV1Payload(): NodePropertiesUpdatedV1Payload {
+    return {
+      properties: this.randomNodeProperties()
+    };
+  }
+
+  public static randomNodeEnabledV1(nodeId?: NodeId, sequence?: number): NodeEnabledV1 {
+    return {
+      eventId: this.randomUUID(),
+      eventType: NodeEventType.EnabledV1,
+      occurredAt: faker.date.past(),
+      aggregateId: nodeId ? nodeId : this.randomNodeId(),
+      sequence: sequence >= 0 ? sequence : faker.random.number(1000)
+    };
+  }
+
+  public static randomNodeDisabledV1(nodeId?: NodeId, sequence?: number): NodeDisabledV1 {
+    return {
+      eventId: this.randomUUID(),
+      eventType: NodeEventType.DisabledV1,
+      occurredAt: faker.date.past(),
+      aggregateId: nodeId ? nodeId : this.randomNodeId(),
+      sequence: sequence >= 0 ? sequence : faker.random.number(1000),
+      payload: this.randomNodeDisabledV1Payload()
+    };
+  }
+
+  public static randomNodeDisabledV1Payload(): NodeDisabledV1Payload {
+    return {
+      reason: faker.random.words()
+    };
+  }
+
+  public static randomNodeLockedV1(nodeId?: NodeId, sequence?: number): NodeLockedV1 {
+    return {
+      eventId: this.randomUUID(),
+      eventType: NodeEventType.LockedV1,
+      occurredAt: faker.date.past(),
+      aggregateId: nodeId ? nodeId : this.randomNodeId(),
+      sequence: sequence >= 0 ? sequence : faker.random.number(1000)
+    };
+  }
+
+  public static randomNodeUnlockedV1(nodeId?: NodeId, sequence?: number): NodeUnlockedV1 {
+    return {
+      eventId: this.randomUUID(),
+      eventType: NodeEventType.UnlockedV1,
+      occurredAt: faker.date.past(),
+      aggregateId: nodeId ? nodeId : this.randomNodeId(),
+      sequence: sequence >= 0 ? sequence : faker.random.number(1000)
+    };
+  }
+
+  public static randomNodeDeletedV1(nodeId?: NodeId, sequence?: number): NodeDeletedV1 {
+    return {
+      eventId: this.randomUUID(),
+      eventType: NodeEventType.DeletedV1,
+      occurredAt: faker.date.past(),
+      aggregateId: nodeId ? nodeId : this.randomNodeId(),
+      sequence: sequence >= 0 ? sequence : faker.random.number(1000)
     };
   }
 

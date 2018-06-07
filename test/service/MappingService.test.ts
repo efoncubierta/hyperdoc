@@ -8,7 +8,7 @@ import "mocha";
 // Hyperdoc services
 import { MappingService } from "../../src/service/MappingService";
 import { MappingServiceError } from "../../src/service/MappingServiceError";
-import { MappingProperties } from "../../src/model/Mapping";
+import { MappingProperties, Mapping } from "../../src/model/Mapping";
 
 // test dependencies
 import { TestDataGenerator } from "../util/TestDataGenerator";
@@ -24,6 +24,10 @@ function mappingServiceTests() {
       chai.use(chaiAsPromised);
 
       AWSMock.enableMock();
+    });
+
+    beforeEach(() => {
+      InMemoryMappingStore.reset();
     });
 
     after(() => {
@@ -79,6 +83,18 @@ function mappingServiceTests() {
         chai.should().exist(m);
 
         m.should.eql(mapping);
+      });
+    });
+
+    it("list() should resolve a dictionary of mapping", () => {
+      for (let i = 0; i < 10; i++) {
+        // update in-memory store to facilite a list of mappings to MappingService.list()
+        InMemoryMappingStore.put(TestDataGenerator.randomMapping());
+      }
+
+      return MappingService.list(testExecutionContext).then((mappings) => {
+        chai.should().exist(mappings);
+        Object.keys(mappings).length.should.be.equal(10);
       });
     });
 
