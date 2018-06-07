@@ -305,7 +305,7 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: MappingEventType.CreatedV1,
-      occurredAt: faker.date.past(),
+      occurredAt: faker.date.past().toISOString(),
       aggregateId: mappingId ? mappingId : this.randomMappingId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000),
       payload: this.randomMappingCreatedV1Payload()
@@ -323,7 +323,7 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: MappingEventType.PropertiesUpdatedV1,
-      occurredAt: faker.date.past(),
+      occurredAt: faker.date.past().toISOString(),
       aggregateId: mappingId ? mappingId : this.randomMappingId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000),
       payload: this.randomMappingPropertiesUpdatedV1Payload()
@@ -340,7 +340,7 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: MappingEventType.DeletedV1,
-      occurredAt: faker.date.past(),
+      occurredAt: faker.date.past().toISOString(),
       aggregateId: mappingId ? mappingId : this.randomMappingId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000)
     };
@@ -350,7 +350,7 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: NodeEventType.CreatedV1,
-      occurredAt: faker.date.past(),
+      occurredAt: faker.date.past().toISOString(),
       aggregateId: nodeId ? nodeId : this.randomNodeId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000),
       payload: this.randomNodeCreatedV1Payload()
@@ -368,7 +368,7 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: NodeEventType.PropertiesUpdatedV1,
-      occurredAt: faker.date.past(),
+      occurredAt: faker.date.past().toISOString(),
       aggregateId: nodeId ? nodeId : this.randomNodeId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000),
       payload: this.randomNodePropertiesUpdatedV1Payload()
@@ -385,7 +385,7 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: NodeEventType.EnabledV1,
-      occurredAt: faker.date.past(),
+      occurredAt: faker.date.past().toISOString(),
       aggregateId: nodeId ? nodeId : this.randomNodeId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000)
     };
@@ -395,7 +395,7 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: NodeEventType.DisabledV1,
-      occurredAt: faker.date.past(),
+      occurredAt: faker.date.past().toISOString(),
       aggregateId: nodeId ? nodeId : this.randomNodeId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000),
       payload: this.randomNodeDisabledV1Payload()
@@ -412,7 +412,7 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: NodeEventType.LockedV1,
-      occurredAt: faker.date.past(),
+      occurredAt: faker.date.past().toISOString(),
       aggregateId: nodeId ? nodeId : this.randomNodeId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000)
     };
@@ -422,7 +422,7 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: NodeEventType.UnlockedV1,
-      occurredAt: faker.date.past(),
+      occurredAt: faker.date.past().toISOString(),
       aggregateId: nodeId ? nodeId : this.randomNodeId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000)
     };
@@ -432,7 +432,7 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: NodeEventType.DeletedV1,
-      occurredAt: faker.date.past(),
+      occurredAt: faker.date.past().toISOString(),
       aggregateId: nodeId ? nodeId : this.randomNodeId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000)
     };
