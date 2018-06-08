@@ -2,8 +2,8 @@
  * Audit details.
  */
 export interface Audit {
-  createdAt: string;
-  createdBy: string;
-  modifiedAt: string;
-  modifiedBy: string;
+  readonly createdAt: string;
+  readonly createdBy: string;
+  readonly modifiedAt: string;
+  readonly modifiedBy: string;
 }

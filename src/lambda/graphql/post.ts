@@ -1,13 +1,11 @@
-// aws dependencies
-import { APIGatewayEvent, Callback, Context, Handler } from "aws-lambda";
-
 // external dependencies
+import { APIGatewayEvent, Callback, Context, Handler } from "aws-lambda";
 import { graphqlLambda } from "apollo-server-lambda";
 
-// hyperdoc dependencies
-import { ExecutionContext } from "../../service/ExecutionContext";
+// Hyperdoc
+import { ExecutionContext } from "../../ExecutionContext";
 
-// hyperdoc-api dependencies
+// Hyperdoc graphql
 import getGraphqlSchema from "../../graphql/schema";
 
 const executionContext: ExecutionContext = {

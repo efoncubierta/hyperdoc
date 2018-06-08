@@ -1,8 +1,10 @@
 // external dependencies
 import * as faker from "faker";
-import { AggregateConfig, AggregateId, Event } from "eventum-sdk";
 
-// models
+// Hyperdoc
+import { AuthenticationContext, ExecutionContext } from "../../src/ExecutionContext";
+
+// Hyperdoc models models
 import {
   Mapping,
   MappingProperties,
@@ -14,8 +16,7 @@ import {
 import { Node, NodeProperties, NodeId } from "../../src/model/Node";
 import { Audit } from "../../src/model/Audit";
 
-// context
-import { AuthenticationContext, ExecutionContext } from "../../src/service/ExecutionContext";
+// Hyperdoc events
 import {
   MappingCreatedV1,
   MappingEventType,

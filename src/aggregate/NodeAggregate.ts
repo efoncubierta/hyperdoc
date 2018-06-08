@@ -1,5 +1,5 @@
 // Eventum dependencies
-import { Aggregate, AggregateConfig, Snapshot, State, Event, EventInput } from "eventum-sdk";
+import { Aggregate, Snapshot, State, Event, EventInput } from "eventum-sdk";
 
 // Hyperdoc configuration
 import { Hyperdoc } from "../Hyperdoc";

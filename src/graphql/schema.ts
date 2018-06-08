@@ -1,9 +1,10 @@
 // graphql dependencies
 import { GraphQLSchema } from "graphql";
 
-// services
-import { ExecutionContext } from "../service/ExecutionContext";
-import { MappingService } from "../service/MappingService";
+import { ExecutionContext } from "../ExecutionContext";
+
+// Hyperdoc readers
+import { MappingReader } from "../reader/MappingReader";
 
 import mappingsToGraphql from "./mapper";
 
@@ -13,7 +14,7 @@ import mappingsToGraphql from "./mapper";
  * @returns GraphQL schema
  */
 function getGraphqlSchema(context: ExecutionContext): Promise<GraphQLSchema> {
-  return MappingService.list(context).then(mappingsToGraphql);
+  return MappingReader.list(context).then(mappingsToGraphql);
 }
 
 export default getGraphqlSchema;

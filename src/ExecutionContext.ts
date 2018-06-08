@@ -1,5 +1,3 @@
-import { AggregateConfig } from "eventum-sdk";
-
 export interface AuthenticationContext {
   userUuid: string;
 }

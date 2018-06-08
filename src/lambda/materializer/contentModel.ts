@@ -1,6 +1,6 @@
 // AWS dependencies
 import { DynamoDB } from "aws-sdk";
-import { APIGatewayEvent, Callback, Context, Handler, DynamoDBStreamEvent } from "aws-lambda";
+import { Callback, Context, Handler, DynamoDBStreamEvent } from "aws-lambda";
 
 // Eventum dependencies
 import { Event } from "eventum-sdk";

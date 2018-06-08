@@ -6,7 +6,7 @@ import { Eventum, EventumProvider } from "eventum-sdk";
 import graphqlTests from "./graphql";
 import aggregateTests from "./aggregate";
 import materializerTests from "./materializer";
-import serviceTests from "./service";
+import ioTests from "./io";
 import storeTests from "./store";
 import validationTests from "./validation";
 import { Hyperdoc } from "../src/Hyperdoc";
@@ -40,7 +40,7 @@ describe("Hyperdoc", () => {
   graphqlTests();
   aggregateTests();
   materializerTests();
-  serviceTests();
+  ioTests();
   storeTests();
   validationTests();
 });

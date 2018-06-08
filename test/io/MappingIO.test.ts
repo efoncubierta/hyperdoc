@@ -5,10 +5,15 @@ import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 import "mocha";
 
-// Hyperdoc services
-import { MappingService } from "../../src/service/MappingService";
-import { MappingServiceError } from "../../src/service/MappingServiceError";
-import { MappingProperties, Mapping } from "../../src/model/Mapping";
+// Hyperdoc readers
+import { MappingReader } from "../../src/reader/MappingReader";
+
+// Hyperdoc writers
+import { MappingWriter } from "../../src/writer/MappingWriter";
+import { MappingWriterError } from "../../src/writer/MappingWriterError";
+
+// Hyperdoc models
+import { MappingProperties } from "../../src/model/Mapping";
 
 // test dependencies
 import { TestDataGenerator } from "../util/TestDataGenerator";
@@ -18,7 +23,7 @@ import { InMemoryMappingStore } from "../mock/InMemoryMappingStore";
 const testExecutionContext = TestDataGenerator.randomExecutionContext();
 
 function mappingServiceTests() {
-  describe("MappingService", () => {
+  describe("MappingWriter/MappingReader", () => {
     before(() => {
       chai.should();
       chai.use(chaiAsPromised);
@@ -37,7 +42,7 @@ function mappingServiceTests() {
     it("get() should resolve to None for a random MappingId", () => {
       const mappingId = TestDataGenerator.randomMappingId();
 
-      return MappingService.get(testExecutionContext, mappingId).then((mappingOpt) => {
+      return MappingReader.get(testExecutionContext, mappingId).then((mappingOpt) => {
         chai.should().exist(mappingOpt);
         mappingOpt.isNone().should.be.true;
       });
@@ -49,7 +54,7 @@ function mappingServiceTests() {
       // update in-memory store to facilite the new mapping to MappingService.get()
       InMemoryMappingStore.put(mapping);
 
-      return MappingService.get(testExecutionContext, mapping.mappingId).then((mappingOpt) => {
+      return MappingReader.get(testExecutionContext, mapping.mappingId).then((mappingOpt) => {
         chai.should().exist(mappingOpt);
         mappingOpt.isSome().should.be.true;
 
@@ -63,7 +68,7 @@ function mappingServiceTests() {
     it("getByName() should resolve to None for a random mapping name", () => {
       const mappingName = TestDataGenerator.randomMappingName();
 
-      return MappingService.getByName(testExecutionContext, mappingName).then((mappingOpt) => {
+      return MappingReader.getByName(testExecutionContext, mappingName).then((mappingOpt) => {
         chai.should().exist(mappingOpt);
         mappingOpt.isNone().should.be.true;
       });
@@ -75,7 +80,7 @@ function mappingServiceTests() {
       // update in-memory store to facilite the new mapping to MappingService.getByName()
       InMemoryMappingStore.put(mapping);
 
-      return MappingService.getByName(testExecutionContext, mapping.name).then((mappingOpt) => {
+      return MappingReader.getByName(testExecutionContext, mapping.name).then((mappingOpt) => {
         chai.should().exist(mappingOpt);
         mappingOpt.isSome().should.be.true;
 
@@ -92,7 +97,7 @@ function mappingServiceTests() {
         InMemoryMappingStore.put(TestDataGenerator.randomMapping());
       }
 
-      return MappingService.list(testExecutionContext).then((mappings) => {
+      return MappingReader.list(testExecutionContext).then((mappings) => {
         chai.should().exist(mappings);
         Object.keys(mappings).length.should.be.equal(10);
       });
@@ -102,7 +107,7 @@ function mappingServiceTests() {
       const mappingName = TestDataGenerator.randomMappingName();
       const mappingProperties = TestDataGenerator.randomMappingProperties();
 
-      return MappingService.create(testExecutionContext, mappingName, mappingProperties).then((mapping) => {
+      return MappingWriter.create(testExecutionContext, mappingName, mappingProperties).then((mapping) => {
         chai.should().exist(mapping);
 
         mapping.name.should.equal(mappingName);
@@ -111,8 +116,8 @@ function mappingServiceTests() {
         // update in-memory store to facilite the new node to MappingService.get()
         InMemoryMappingStore.put(mapping);
 
-        const p = MappingService.create(testExecutionContext, mappingName, mappingProperties);
-        return p.should.be.rejectedWith(MappingServiceError);
+        const p = MappingWriter.create(testExecutionContext, mappingName, mappingProperties);
+        return p.should.be.rejectedWith(MappingWriterError);
       });
     });
 
@@ -129,21 +134,21 @@ function mappingServiceTests() {
       };
 
       // invalid name and valid properties
-      MappingService.create
+      MappingWriter.create
         .bind(testExecutionContext, invalidMappingName, mappingProperties)
-        .should.throw(MappingServiceError);
+        .should.throw(MappingWriterError);
 
       // valid name and invalid properties
-      MappingService.create
+      MappingWriter.create
         .bind(testExecutionContext, mappingName, invalidMappingProperties)
-        .should.throw(MappingServiceError);
+        .should.throw(MappingWriterError);
     });
 
     it("setProperties() should be rejected for random MappingId", () => {
       const mappingId = TestDataGenerator.randomMappingId();
       const mappingProperties = TestDataGenerator.randomMappingProperties();
 
-      return MappingService.setProperties(testExecutionContext, mappingId, mappingProperties).should.be.rejected;
+      return MappingWriter.setProperties(testExecutionContext, mappingId, mappingProperties).should.be.rejected;
     });
 
     it("setProperties() should set properties to an existing mapping", () => {
@@ -152,7 +157,7 @@ function mappingServiceTests() {
       const mappingProperties2 = TestDataGenerator.randomMappingProperties();
 
       let mappingId;
-      return MappingService.create(testExecutionContext, mappingName, mappingProperties)
+      return MappingWriter.create(testExecutionContext, mappingName, mappingProperties)
         .then((mapping) => {
           chai.should().exist(mapping);
 
@@ -165,7 +170,7 @@ function mappingServiceTests() {
           // update in-memory store to facilite the new node to MappingService.get()
           InMemoryMappingStore.put(mapping);
 
-          return MappingService.setProperties(testExecutionContext, mappingId, mappingProperties2);
+          return MappingWriter.setProperties(testExecutionContext, mappingId, mappingProperties2);
         })
         .then((mapping) => {
           chai.should().exist(mapping);

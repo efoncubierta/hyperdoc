@@ -2,9 +2,9 @@
  * Mapping type.
  */
 export interface Mapping {
-  mappingId: MappingId;
-  name: string;
-  properties: MappingProperties;
+  readonly mappingId: MappingId;
+  readonly name: string;
+  readonly properties: MappingProperties;
 }
 
 /**
@@ -47,17 +47,17 @@ export interface MappingProperties {
  * Mapping property.
  */
 export interface MappingProperty {
-  type: MappingPropertyType;
-  mandatory: boolean;
-  multiple: boolean;
+  readonly type: MappingPropertyType;
+  readonly mandatory: boolean;
+  readonly multiple: boolean;
 }
 
 export interface MappingNestedProperty extends MappingProperty {
-  properties: MappingProperties;
+  readonly properties: MappingProperties;
 }
 
 export interface MappingNodeProperty extends MappingProperty {
-  mapping: string;
+  readonly mapping: string;
 }
 
 /**

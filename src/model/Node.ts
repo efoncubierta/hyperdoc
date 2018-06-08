@@ -4,9 +4,9 @@ import { Audit } from "./Audit";
  * Node.
  */
 export interface Node {
-  nodeId: NodeId;
-  mappingName: string;
-  properties: NodeProperties;
+  readonly nodeId: NodeId;
+  readonly mappingName: string;
+  readonly properties: NodeProperties;
   // audit: Audit;
 }
 

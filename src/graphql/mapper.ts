@@ -15,8 +15,8 @@ import {
 import { GraphQLOutputType, GraphQLUnionType } from "graphql/type";
 
 // services
-import { ExecutionContext } from "../service/ExecutionContext";
-import { NodeService } from "../service/NodeService";
+import { NodeReader } from "../reader/NodeReader";
+import { NodeWriter } from "../writer/NodeWriter";
 
 // models
 import {
@@ -25,7 +25,6 @@ import {
   MappingProperties,
   MappingProperty,
   MappingNestedProperty,
-  MappingNodeProperty,
   Mappings
 } from "../model/Mapping";
 
@@ -280,7 +279,7 @@ function processMapping(objectTypes: IGraphQLObjectTypes, mapping: Mapping): Fie
       uuid: { type: GraphQLString }
     },
     resolve(_, { uuid }, ctx) {
-      return NodeService.get(ctx, uuid);
+      return NodeReader.get(ctx, uuid);
     }
   };
 }
@@ -348,7 +347,7 @@ function processMappings(mappings: Mappings): IProcessContext {
         uuid: { type: GraphQLString }
       },
       resolve(_, { uuid }, ctx) {
-        return NodeService.get(ctx, uuid);
+        return NodeReader.get(ctx, uuid);
       }
     };
 
@@ -393,7 +392,7 @@ function generateMutationType(context: IProcessContext): IProcessContext {
           properties: { type: new GraphQLNonNull(context.objectTypes.NodeProperties) }
         },
         resolve: (_, { mappingName, properties }, ctx) => {
-          return NodeService.create(ctx, mappingName, properties);
+          return NodeWriter.create(ctx, mappingName, properties);
         }
       }
     })
