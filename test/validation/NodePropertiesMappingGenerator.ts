@@ -18,7 +18,12 @@ function validateMappingProperty(nodeProperty: any, mappingProperty: MappingProp
     expect(mappingProperty.multiple).to.be.true;
     validateMappingProperty(nodeProperty[0], mappingProperty); // recursion
   } else if (typeof nodeProperty === "string") {
-    expect(mappingProperty.type).to.be.oneOf([MappingPropertyType.Date, MappingPropertyType.Text]);
+    expect(mappingProperty.type).to.be.oneOf([
+      MappingPropertyType.Date,
+      MappingPropertyType.Text,
+      MappingPropertyType.Node,
+      MappingPropertyType.Resource
+    ]);
   } else if (typeof nodeProperty === "number") {
     expect(mappingProperty.type).to.be.oneOf([MappingPropertyType.Integer, MappingPropertyType.Float]);
   } else if (typeof nodeProperty === "boolean") {

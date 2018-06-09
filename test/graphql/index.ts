@@ -85,7 +85,6 @@ function graphqlTests() {
 
             // validate mutation type
             const mutationType = graphqlSchema.getMutationType();
-            const mutationTypeFields = mutationType.getFields();
             expect(mutationType).to.exist;
 
             // validate Type 1 type

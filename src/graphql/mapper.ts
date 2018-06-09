@@ -25,7 +25,9 @@ import {
   MappingProperties,
   MappingProperty,
   MappingNestedProperty,
-  Mappings
+  Mappings,
+  MappingNodeProperty,
+  MappingResourceProperty
 } from "../model/Mapping";
 
 // GraphQL fields definition for typing
@@ -77,11 +79,10 @@ function wrapProperty(
 /**
  * Maps mapping property types to GraphQL property types.
  *
- * @param objectTypes Dictionary of object types
  * @param propertyType Mapping property type
  * @returns GraphQL property type
  */
-function propertyTypeLookup(objectTypes: IGraphQLObjectTypes, propertyType: MappingPropertyType): GraphQLOutputType {
+function propertyTypeLookup(propertyType: MappingPropertyType): GraphQLOutputType {
   switch (propertyType) {
     case MappingPropertyType.Text:
       return GraphQLString;
@@ -109,14 +110,13 @@ function propertyTypeLookup(objectTypes: IGraphQLObjectTypes, propertyType: Mapp
  * @return GraphQL field configuration
  */
 function processScalarProperty(
-  objectTypes: IGraphQLObjectTypes,
   propertyName: string,
   propertyType: MappingPropertyType,
   propertyMandatory: boolean,
   propertyMultiple: boolean
 ): FieldConfig {
   return {
-    type: wrapProperty(propertyTypeLookup(objectTypes, propertyType), propertyMandatory, propertyMultiple),
+    type: wrapProperty(propertyTypeLookup(propertyType), propertyMandatory, propertyMultiple),
     resolve(node) {
       // TODO handle property value by type
       return node.properties[propertyName];
@@ -166,7 +166,31 @@ function processNestedProperty(
  * @param propertyMultiple Flag whether a property is multiple
  * @returns GraphQL field configuration
  */
-// function processNodeProperty(
+function processNode(
+  objectTypes: IGraphQLObjectTypes,
+  mappingName: string,
+  propertyMandatory: boolean = false,
+  propertyMultiple: boolean = false
+): FieldConfig {
+  return {
+    type: wrapProperty(objectTypes[mappingName], propertyMandatory, propertyMultiple),
+    resolve(node, _, ctx) {
+      return NodeReader.get(ctx, node[mappingName]);
+    }
+  };
+}
+
+/**
+ * Process a resource reference property as GraphQL field.
+ *
+ * @param objectTypes Dictionary of object types
+ * @param propertyName Property name
+ * @param mappingName Mapping name
+ * @param propertyMandatory Flag whether a property is mandatory
+ * @param propertyMultiple Flag whether a property is multiple
+ * @returns GraphQL field configuration
+ */
+// function processResource(
 //   objectTypes: IGraphQLObjectTypes,
 //   mappingName: string,
 //   propertyMandatory: boolean = false,
@@ -175,7 +199,7 @@ function processNestedProperty(
 //   return {
 //     type: wrapProperty(objectTypes[mappingName], propertyMandatory, propertyMultiple),
 //     resolve(node, _, ctx) {
-//       return NodeService.get(ctx, node[mappingName]);
+//       return ResourceReader.get(ctx, node[mappingName]);
 //     }
 //   };
 // }
@@ -206,15 +230,17 @@ function processProperty(
         property.mandatory,
         property.multiple
       );
-    // case MappingPropertyType.Node:
-    //   return processNodeProperty(
+    case MappingPropertyType.Node:
+      return processNode(objectTypes, (property as MappingNodeProperty).mapping, property.mandatory, property.multiple);
+    // case MappingPropertyType.Resource:
+    //   return processResource(
     //     objectTypes,
-    //     (property as MappingNodeProperty).mapping,
+    //     (property as MappingResourceProperty).kind,
     //     property.mandatory,
     //     property.multiple
     //   );
     default:
-      return processScalarProperty(objectTypes, propertyName, property.type, property.mandatory, property.multiple);
+      return processScalarProperty(propertyName, property.type, property.mandatory, property.multiple);
   }
 }
 

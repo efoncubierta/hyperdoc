@@ -120,6 +120,26 @@ export class TestDataGenerator {
         mandatory: true,
         multiple: true
       },
+      nodeProp: {
+        type: MappingPropertyType.Node,
+        mandatory: true,
+        multiple: false
+      },
+      multiNodeProp: {
+        type: MappingPropertyType.Node,
+        mandatory: true,
+        multiple: true
+      },
+      resourceProp: {
+        type: MappingPropertyType.Resource,
+        mandatory: true,
+        multiple: false
+      },
+      multiResourceProp: {
+        type: MappingPropertyType.Resource,
+        mandatory: true,
+        multiple: true
+      },
       nestedProp: {
         type: MappingPropertyType.Nested,
         mandatory: true,
@@ -149,7 +169,9 @@ export class TestDataGenerator {
       MappingPropertyType.Float,
       MappingPropertyType.Integer,
       MappingPropertyType.Nested,
-      MappingPropertyType.Text
+      MappingPropertyType.Node,
+      MappingPropertyType.Text,
+      MappingPropertyType.Resource
     ]);
   }
 
@@ -224,6 +246,10 @@ export class TestDataGenerator {
       multiBoolProp: [faker.random.boolean(), faker.random.boolean()],
       dateProp: faker.date.past().toISOString(),
       multiDateProp: [faker.date.past().toISOString(), faker.date.past().toISOString()],
+      nodeProp: this.randomNodeHRN(),
+      multiNodeProp: [this.randomNodeHRN(), this.randomNodeHRN()],
+      resourceProp: this.randomResourceHRN(),
+      multiResourceProp: [this.randomResourceHRN(), this.randomResourceHRN()],
       nestedProp: {
         nestedSubprop: {
           stringSubprop: faker.random.words()
@@ -265,6 +291,12 @@ export class TestDataGenerator {
         case MappingPropertyType.Text:
           properties[propertyName] = multiple ? [faker.random.words()] : faker.random.words();
           break;
+        case MappingPropertyType.Node:
+          properties[propertyName] = multiple ? [this.randomNodeHRN()] : this.randomNodeHRN();
+          break;
+        case MappingPropertyType.Resource:
+          properties[propertyName] = multiple ? [this.randomResourceHRN()] : this.randomResourceHRN();
+          break;
         default:
           throw new Error(`Type ${propertyType} not yet supported.`);
       }
@@ -280,6 +312,14 @@ export class TestDataGenerator {
       modifiedAt: faker.date.past().toISOString(),
       modifiedBy: faker.random.word()
     };
+  }
+
+  public static randomNodeHRN(): string {
+    return `hyperdoc:node:${this.randomUUID()}`;
+  }
+
+  public static randomResourceHRN(): string {
+    return `hyperdoc:resource:${this.randomUUID()}`;
   }
 
   public static randomUsername(): string {

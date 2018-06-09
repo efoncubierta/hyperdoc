@@ -9,6 +9,7 @@ import {
 } from "../model/Mapping";
 import { NodeProperties, NodePropertyType, NodePropertiesArray } from "../model/Node";
 import { Option, none, some } from "fp-ts/lib/Option";
+import { HRNPattern } from "../model/HRN";
 
 /**
  * Node to mapping generator.
@@ -94,7 +95,15 @@ export class NodePropertiesMappingGenerator {
   }
 
   private static guessStringValue(value: string): MappingPropertyType {
-    return this.isDate(value) ? MappingPropertyType.Date : MappingPropertyType.Text;
+    if (this.isDate(value)) {
+      return MappingPropertyType.Date;
+    } else if (this.isNodeHRN(value)) {
+      return MappingPropertyType.Node;
+    } else if (this.isResourceHRN(value)) {
+      return MappingPropertyType.Resource;
+    } else {
+      return MappingPropertyType.Text;
+    }
   }
 
   private static guessNumberValue(value: number): MappingPropertyType {
@@ -107,5 +116,23 @@ export class NodePropertiesMappingGenerator {
 
   private static isDate(value: string): boolean {
     return moment(value, moment.ISO_8601).isValid();
+  }
+
+  private static isNodeHRN(value: string): boolean {
+    if (HRNPattern.test(value)) {
+      const m = value.match(HRNPattern);
+      return m[1] === "node";
+    }
+
+    return false;
+  }
+
+  private static isResourceHRN(value: string): boolean {
+    if (HRNPattern.test(value)) {
+      const m = value.match(HRNPattern);
+      return m[1] === "resource";
+    }
+
+    return false;
   }
 }

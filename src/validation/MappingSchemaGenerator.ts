@@ -66,6 +66,16 @@ export class MappingSchemaGenerator {
         return {
           type: "number"
         };
+      case MappingPropertyType.Node:
+        return {
+          type: "string",
+          pattern: "^hyperdoc:node:[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+        };
+      case MappingPropertyType.Resource:
+        return {
+          type: "string",
+          pattern: "^hyperdoc:resource:[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+        };
       default:
         throw new Error(`Mapping property type ${property.type} is not supported`);
     }

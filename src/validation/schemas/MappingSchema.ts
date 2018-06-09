@@ -40,7 +40,7 @@ export const MappingPropertySchema: Schema = {
   properties: {
     type: {
       type: "text",
-      enum: ["integer", "text", "float", "boolean", "date", "nested"]
+      enum: ["integer", "text", "float", "boolean", "date", "nested", "node", "resource"]
     },
     mandatory: {
       type: "boolean"

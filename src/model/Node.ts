@@ -1,4 +1,5 @@
 import { Audit } from "./Audit";
+import { HRN } from "./HRN";
 
 /**
  * Node.
@@ -35,7 +36,7 @@ export interface NodePropertiesArray extends Array<string | number | boolean> {}
 /**
  * Allowed values for a node property.
  */
-export type NodePropertyType = string | number | boolean | NodeProperties | NodePropertiesArray;
+export type NodePropertyType = string | number | boolean | HRN | NodeProperties | NodePropertiesArray;
 
 /**
  * Node state names.

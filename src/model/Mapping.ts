@@ -33,7 +33,9 @@ export enum MappingPropertyType {
   Float = "float",
   Boolean = "boolean",
   Date = "date",
-  Nested = "nested"
+  Nested = "nested",
+  Node = "node",
+  Resource = "resource"
 }
 
 /**
@@ -58,6 +60,10 @@ export interface MappingNestedProperty extends MappingProperty {
 
 export interface MappingNodeProperty extends MappingProperty {
   readonly mapping: string;
+}
+
+export interface MappingResourceProperty extends MappingProperty {
+  readonly kind: string;
 }
 
 /**
