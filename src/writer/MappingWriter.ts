@@ -57,9 +57,10 @@ export class MappingWriter {
       return mappingOpt.foldL(
         () => {
           // invoke create() in the aggregate. New state must be "Enabled"
-          return MappingWriter.runAggregate(mappingId)((aggregate) => aggregate.create(name, strictness, properties), [
-            MappingStateName.Enabled
-          ]);
+          return MappingWriter.runAggregate(context, mappingId)(
+            (aggregate) => aggregate.create(name, strictness, properties),
+            [MappingStateName.Enabled]
+          );
         },
         (_) => {
           // throw an error if a mapping with the same name already exists
@@ -89,14 +90,14 @@ export class MappingWriter {
     MappingWriter.validateMappingProperties(properties);
 
     // invoke setProperties() in the aggregate. New state must be "Enabled"
-    return MappingWriter.runAggregate(mappingId)((aggregate) => aggregate.setProperties(properties), [
+    return MappingWriter.runAggregate(context, mappingId)((aggregate) => aggregate.setProperties(properties), [
       MappingStateName.Enabled
     ]);
   }
 
-  private static runAggregate(mappingId: MappingId): RunAggregateF {
+  private static runAggregate(context: ExecutionContext, mappingId: MappingId): RunAggregateF {
     return (invoke: AggregateInvokeF, expectedStates: MappingStateName[], hasPayload: boolean = true) => {
-      return MappingWriter.getAggregate(mappingId)
+      return MappingWriter.getAggregate(context, mappingId)
         .then((aggregate) => {
           return invoke(aggregate);
         })
@@ -110,8 +111,8 @@ export class MappingWriter {
     };
   }
 
-  private static getAggregate(mappingId: MappingId): Promise<IMappingAggregate> {
-    return MappingAggregate.build(mappingId);
+  private static getAggregate(context: ExecutionContext, mappingId: MappingId): Promise<IMappingAggregate> {
+    return MappingAggregate.build(context, mappingId);
   }
 
   private static validateMappingName(name: string): void {

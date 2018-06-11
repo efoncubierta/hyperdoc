@@ -46,7 +46,7 @@ export class NodeWriter {
       NodeWriter.validateNodeProperties(properties, mapping);
 
       // invoke create() in the aggregate. New state must be "Enabled"
-      return NodeWriter.runAggregate(nodeId)((aggregate) => aggregate.create(mappingName, properties), [
+      return NodeWriter.runAggregate(context, nodeId)((aggregate) => aggregate.create(mappingName, properties), [
         NodeStateName.Enabled
       ]);
     });
@@ -83,7 +83,7 @@ export class NodeWriter {
         NodeWriter.validateNodeProperties(properties, mapping);
 
         // invoke setProperties() in the aggregate. New state must be "Enabled"
-        return NodeWriter.runAggregate(nodeId)((aggregate) => aggregate.setProperties(properties), [
+        return NodeWriter.runAggregate(context, nodeId)((aggregate) => aggregate.setProperties(properties), [
           NodeStateName.Enabled
         ]);
       });
@@ -91,32 +91,32 @@ export class NodeWriter {
 
   public static delete(context: ExecutionContext, nodeId: NodeId): Promise<Node> {
     // invoke delete() in the aggregate. New state must be "Deleted" and has no payload
-    return NodeWriter.runAggregate(nodeId)((aggregate) => aggregate.delete(), [NodeStateName.Deleted], false);
+    return NodeWriter.runAggregate(context, nodeId)((aggregate) => aggregate.delete(), [NodeStateName.Deleted], false);
   }
 
   public static enable(context: ExecutionContext, nodeId: NodeId): Promise<Node> {
     // invoke lock() in the aggregate. New state must be "Enabled"
-    return NodeWriter.runAggregate(nodeId)((aggregate) => aggregate.enable(), [NodeStateName.Enabled]);
+    return NodeWriter.runAggregate(context, nodeId)((aggregate) => aggregate.enable(), [NodeStateName.Enabled]);
   }
 
   public static disable(context: ExecutionContext, nodeId: NodeId, reason: string): Promise<Node> {
     // invoke lock() in the aggregate. New state must be "Enabled"
-    return NodeWriter.runAggregate(nodeId)((aggregate) => aggregate.disable(reason), [NodeStateName.Disabled]);
+    return NodeWriter.runAggregate(context, nodeId)((aggregate) => aggregate.disable(reason), [NodeStateName.Disabled]);
   }
 
   public static lock(context: ExecutionContext, nodeId: NodeId): Promise<Node> {
     // invoke lock() in the aggregate. New state must be "Locked"
-    return NodeWriter.runAggregate(nodeId)((aggregate) => aggregate.lock(), [NodeStateName.Locked]);
+    return NodeWriter.runAggregate(context, nodeId)((aggregate) => aggregate.lock(), [NodeStateName.Locked]);
   }
 
   public static unlock(context: ExecutionContext, nodeId: NodeId): Promise<Node> {
     // invoke lock() in the aggregate. New state must be "Enabled"
-    return NodeWriter.runAggregate(nodeId)((aggregate) => aggregate.unlock(), [NodeStateName.Enabled]);
+    return NodeWriter.runAggregate(context, nodeId)((aggregate) => aggregate.unlock(), [NodeStateName.Enabled]);
   }
 
-  private static runAggregate(nodeId: NodeId): RunAggregateF {
+  private static runAggregate(context: ExecutionContext, nodeId: NodeId): RunAggregateF {
     return (invoke: AggregateInvokeF, expectedStates: NodeStateName[], hasPayload: boolean = true) => {
-      return NodeWriter.getAggregate(nodeId)
+      return NodeWriter.getAggregate(context, nodeId)
         .then((aggregate) => {
           return invoke(aggregate);
         })
@@ -146,8 +146,8 @@ export class NodeWriter {
     }
   }
 
-  private static getAggregate(nodeId: NodeId): Promise<NodeAggregate> {
-    return NodeAggregate.build(nodeId);
+  private static getAggregate(context: ExecutionContext, nodeId: NodeId): Promise<NodeAggregate> {
+    return NodeAggregate.build(context, nodeId);
   }
 }
 

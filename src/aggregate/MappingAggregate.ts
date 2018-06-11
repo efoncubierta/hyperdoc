@@ -1,5 +1,5 @@
 // Eventum dependencies
-import { Aggregate, Snapshot, Event, EventInput } from "eventum-sdk";
+import { Aggregate, Snapshot, Event, EventInput, AggregateConfig } from "eventum-sdk";
 
 // Hyperdoc configuration
 import { Hyperdoc } from "../Hyperdoc";
@@ -24,6 +24,7 @@ import {
   MappingPropertiesUpdatedV1Payload,
   MappingStrictnessChangedV1Payload
 } from "../event/MappingEvent";
+import { ExecutionContext } from "../ExecutionContext";
 
 /**
  * Mapping aggregate definition.
@@ -74,18 +75,27 @@ export class MappingAggregate extends Aggregate<MappingState> implements IMappin
     name: MappingStateName.New
   };
 
+  // Hyperdoc execution context
+  private readonly context: ExecutionContext;
+
+  protected constructor(context: ExecutionContext, mappingId: MappingId, config: AggregateConfig) {
+    super(mappingId, config);
+    this.context = context;
+  }
+
   /**
    * Create and rehydrate a mapping aggregate.
    *
+   * @param context Hyperdoc execution context
    * @param mappingId Mapping ID
    * @returns Promise that resolves to a mapping aggregate
    */
-  public static build(mappingId: MappingId): Promise<MappingAggregate> {
+  public static build(context: ExecutionContext, mappingId: MappingId): Promise<MappingAggregate> {
     // aggregate config for node aggregate
     const aggregateConfig = Hyperdoc.config().eventum.aggregate.mapping;
 
     // create aggregate
-    const nodeAggregate = new MappingAggregate(mappingId, aggregateConfig);
+    const nodeAggregate = new MappingAggregate(context, mappingId, aggregateConfig);
 
     return nodeAggregate.rehydrate().then(() => {
       return nodeAggregate;
@@ -126,8 +136,8 @@ export class MappingAggregate extends Aggregate<MappingState> implements IMappin
           properties
         };
         const mappingEvent: EventInput = {
-          source: "hyperdoc",
-          authority: "hyperdoc",
+          source: Hyperdoc.config().serviceName,
+          authority: this.context.auth.userHrn,
           aggregateId: this.aggregateId,
           eventType: MappingEventType.CreatedV1,
           payload: mappingEventPayload
@@ -157,8 +167,8 @@ export class MappingAggregate extends Aggregate<MappingState> implements IMappin
           properties
         };
         const mappingEvent: EventInput = {
-          source: "hyperdoc",
-          authority: "hyperdoc",
+          source: Hyperdoc.config().serviceName,
+          authority: this.context.auth.userHrn,
           aggregateId: this.aggregateId,
           eventType: MappingEventType.PropertiesUpdatedV1,
           payload: mappingEventPayload
@@ -190,8 +200,8 @@ export class MappingAggregate extends Aggregate<MappingState> implements IMappin
           strictness
         };
         const mappingEvent: EventInput = {
-          source: "hyperdoc",
-          authority: "hyperdoc",
+          source: Hyperdoc.config().serviceName,
+          authority: this.context.auth.userHrn,
           aggregateId: this.aggregateId,
           eventType: MappingEventType.StrictnessChangedV1,
           payload: mappingEventPayload
@@ -219,8 +229,8 @@ export class MappingAggregate extends Aggregate<MappingState> implements IMappin
     switch (this.currentState.name) {
       case MappingStateName.Enabled:
         const mappingEvent: EventInput = {
-          source: "hyperdoc",
-          authority: "hyperdoc",
+          source: Hyperdoc.config().serviceName,
+          authority: this.context.auth.userHrn,
           aggregateId: this.aggregateId,
           eventType: MappingEventType.DeletedV1
         };

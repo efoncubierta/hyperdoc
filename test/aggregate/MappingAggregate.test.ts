@@ -6,7 +6,7 @@ import * as chaiAsPromised from "chai-as-promised";
 import "mocha";
 
 // Hyperdoc dependencies
-import { MappingStateName } from "../../src/model/Mapping";
+import { MappingStateName, MappingStrictnessLevel } from "../../src/model/Mapping";
 import { MappingAggregate } from "../../src/aggregate/MappingAggregate";
 
 // test dependencies
@@ -20,29 +20,33 @@ function mappingAggregateTests() {
     });
 
     it("create() should be rejected on an existing mapping", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const mappingId = TestDataGenerator.randomMappingId();
       const mappingName = TestDataGenerator.randomMappingName();
+      const mappingStrictness = TestDataGenerator.randomMappingStrictnessLevel();
       const mappingProperties = TestDataGenerator.randomMappingProperties();
 
-      return MappingAggregate.build(mappingId).then((mappingAggregate) => {
-        return mappingAggregate.create(mappingName, mappingProperties).then((mappingState) => {
+      return MappingAggregate.build(context, mappingId).then((mappingAggregate) => {
+        return mappingAggregate.create(mappingName, mappingStrictness, mappingProperties).then((mappingState) => {
           mappingState.should.exist;
           mappingState.name.should.be.equal(MappingStateName.Enabled);
 
           // can't call create for a second time
-          return mappingAggregate.create(mappingName, mappingProperties).should.be.rejected;
+          return mappingAggregate.create(mappingName, mappingStrictness, mappingProperties).should.be.rejected;
         });
       });
     });
 
     it("create() should be rejected on a deleted mapping", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const mappingId = TestDataGenerator.randomMappingId();
       const mappingName = TestDataGenerator.randomMappingName();
+      const mappingStrictness = TestDataGenerator.randomMappingStrictnessLevel();
       const mappignProperties = TestDataGenerator.randomMappingProperties();
 
-      return MappingAggregate.build(mappingId).then((mappingAggregate) => {
+      return MappingAggregate.build(context, mappingId).then((mappingAggregate) => {
         return mappingAggregate
-          .create(mappingName, mappignProperties)
+          .create(mappingName, mappingStrictness, mappignProperties)
           .then((mappingState) => {
             mappingState.should.exist;
             mappingState.name.should.be.equal(MappingStateName.Enabled);
@@ -53,17 +57,17 @@ function mappingAggregateTests() {
             mappingState.should.exist;
             mappingState.name.should.be.equal(MappingStateName.Deleted);
 
-            return mappingAggregate.create(mappingName, mappignProperties).should.be.rejected;
+            return mappingAggregate.create(mappingName, mappingStrictness, mappignProperties).should.be.rejected;
           });
       });
     });
 
     it("setProperties() should be rejected on a new mapping", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const mappingId = TestDataGenerator.randomMappingId();
-      const mappingName = TestDataGenerator.randomMappingName();
       const mappingProperties = TestDataGenerator.randomMappingProperties();
 
-      return MappingAggregate.build(mappingId).then((mappingAggregate) => {
+      return MappingAggregate.build(context, mappingId).then((mappingAggregate) => {
         const initialState = mappingAggregate.get();
         initialState.should.exist;
         initialState.name.should.be.equal(MappingStateName.New);
@@ -73,13 +77,15 @@ function mappingAggregateTests() {
     });
 
     it("setProperties() should be rejected on a deleted node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const mappingId = TestDataGenerator.randomMappingId();
       const mappingName = TestDataGenerator.randomMappingName();
+      const mappingStrictness = TestDataGenerator.randomMappingStrictnessLevel();
       const mappingProperties = TestDataGenerator.randomMappingProperties();
 
-      return MappingAggregate.build(mappingId).then((mappingAggregate) => {
+      return MappingAggregate.build(context, mappingId).then((mappingAggregate) => {
         return mappingAggregate
-          .create(mappingName, mappingProperties)
+          .create(mappingName, mappingStrictness, mappingProperties)
           .then((mappingState) => {
             mappingState.should.exist;
             mappingState.name.should.be.equal(MappingStateName.Enabled);
@@ -96,9 +102,10 @@ function mappingAggregateTests() {
     });
 
     it("delete() should be rejected on a new mapping", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const nodeId = TestDataGenerator.randomMappingId();
 
-      return MappingAggregate.build(nodeId).then((mappingAggregate) => {
+      return MappingAggregate.build(context, nodeId).then((mappingAggregate) => {
         const initialState = mappingAggregate.get();
         initialState.should.exist;
         initialState.name.should.be.equal(MappingStateName.New);

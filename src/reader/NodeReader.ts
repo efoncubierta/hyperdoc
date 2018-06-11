@@ -36,7 +36,7 @@ export class NodeReader {
    * @param nodeId Node ID
    */
   public static exists(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
-    return NodeReader.isInState(nodeId, [NodeStateName.Enabled, NodeStateName.Disabled, NodeStateName.Locked]);
+    return NodeReader.isInState(context, nodeId, [NodeStateName.Enabled, NodeStateName.Disabled, NodeStateName.Locked]);
   }
 
   /**
@@ -46,7 +46,7 @@ export class NodeReader {
    * @param nodeId Node ID
    */
   public static isEnabled(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
-    return NodeReader.isInState(nodeId, [NodeStateName.Enabled]);
+    return NodeReader.isInState(context, nodeId, [NodeStateName.Enabled]);
   }
 
   /**
@@ -56,7 +56,7 @@ export class NodeReader {
    * @param nodeId Node ID
    */
   public static isDisabled(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
-    return NodeReader.isInState(nodeId, [NodeStateName.Disabled]);
+    return NodeReader.isInState(context, nodeId, [NodeStateName.Disabled]);
   }
 
   /**
@@ -66,7 +66,7 @@ export class NodeReader {
    * @param nodeId Node ID
    */
   public static isLocked(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
-    return NodeReader.isInState(nodeId, [NodeStateName.Locked]);
+    return NodeReader.isInState(context, nodeId, [NodeStateName.Locked]);
   }
 
   /**
@@ -76,7 +76,7 @@ export class NodeReader {
    * @param nodeId Node ID
    */
   public static isUnlocked(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
-    return NodeReader.isInState(nodeId, [NodeStateName.Enabled, NodeStateName.Disabled]);
+    return NodeReader.isInState(context, nodeId, [NodeStateName.Enabled, NodeStateName.Disabled]);
   }
 
   /**
@@ -86,17 +86,21 @@ export class NodeReader {
    * @param nodeId Node ID
    */
   public static isDeleted(context: ExecutionContext, nodeId: NodeId): Promise<boolean> {
-    return NodeReader.isInState(nodeId, [NodeStateName.Deleted]);
+    return NodeReader.isInState(context, nodeId, [NodeStateName.Deleted]);
   }
 
-  private static isInState(nodeId: NodeId, expectedStates: NodeStateName[]): Promise<boolean> {
-    return NodeReader.getAggregate(nodeId).then((aggregate) => {
+  private static isInState(
+    context: ExecutionContext,
+    nodeId: NodeId,
+    expectedStates: NodeStateName[]
+  ): Promise<boolean> {
+    return NodeReader.getAggregate(context, nodeId).then((aggregate) => {
       const state = aggregate.get();
       return expectedStates.indexOf(state.name) >= 0;
     });
   }
 
-  private static getAggregate(nodeId: NodeId): Promise<NodeAggregate> {
-    return NodeAggregate.build(nodeId);
+  private static getAggregate(context: ExecutionContext, nodeId: NodeId): Promise<NodeAggregate> {
+    return NodeAggregate.build(context, nodeId);
   }
 }

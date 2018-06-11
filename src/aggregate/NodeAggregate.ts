@@ -1,5 +1,5 @@
 // Eventum dependencies
-import { Aggregate, Snapshot, State, Event, EventInput } from "eventum-sdk";
+import { Aggregate, Snapshot, State, Event, EventInput, AggregateConfig } from "eventum-sdk";
 
 // Hyperdoc configuration
 import { Hyperdoc } from "../Hyperdoc";
@@ -13,7 +13,6 @@ import {
   NodeCreatedV1,
   NodePropertiesUpdatedV1,
   NodeDeletedV1,
-  NodeEvent,
   NodeLockedV1,
   NodeUnlockedV1,
   NodeDisabledV1,
@@ -22,6 +21,7 @@ import {
   NodePropertiesUpdatedV1Payload,
   NodeDisabledV1Payload
 } from "../event/NodeEvent";
+import { ExecutionContext } from "../ExecutionContext";
 
 /**
  * Node aggregate definition.
@@ -50,21 +50,28 @@ export interface INodeAggregate {
    * Disable a node.
    *
    * @param reason Reason why it was disabled
+   * @returns Promise that resolves to a node state
    */
   disable(reason: string): Promise<NodeState>;
 
   /**
    * Enable a node.
+   *
+   * @returns Promise that resolves to a node state
    */
   enable(): Promise<NodeState>;
 
   /**
    * Lock the node.
+   *
+   * @returns Promise that resolves to a node state
    */
   lock(): Promise<NodeState>;
 
   /**
    * Unlock the node.
+   *
+   * @returns Promise that resolves to a node state
    */
   unlock(): Promise<NodeState>;
 
@@ -85,18 +92,27 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
     name: NodeStateName.New
   };
 
+  // Hyperdoc execution context
+  private readonly context: ExecutionContext;
+
+  protected constructor(context: ExecutionContext, nodeId: NodeId, config: AggregateConfig) {
+    super(nodeId, config);
+    this.context = context;
+  }
+
   /**
    * Create and rehydrate a node aggregate.
    *
+   * @param context Hyperdoc execution context
    * @param nodeId Node ID
    * @returns Promise that resolves to a node aggregate
    */
-  public static build(nodeId: NodeId): Promise<NodeAggregate> {
+  public static build(context: ExecutionContext, nodeId: NodeId): Promise<NodeAggregate> {
     // aggregate config for node aggregate
     const aggregateConfig = Hyperdoc.config().eventum.aggregate.node;
 
     // create aggregate
-    const nodeAggregate = new NodeAggregate(nodeId, aggregateConfig);
+    const nodeAggregate = new NodeAggregate(context, nodeId, aggregateConfig);
 
     return nodeAggregate.rehydrate().then(() => {
       return nodeAggregate;
@@ -132,8 +148,8 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
           properties
         };
         const nodeEvent: EventInput = {
-          source: "hyperdoc",
-          authority: "hyperdoc",
+          source: Hyperdoc.config().serviceName,
+          authority: this.context.auth.userHrn,
           aggregateId: this.aggregateId,
           eventType: NodeEventType.CreatedV1,
           payload: nodeEventPayload
@@ -166,8 +182,8 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
           properties
         };
         const nodeEvent: EventInput = {
-          source: "hyperdoc",
-          authority: "hyperdoc",
+          source: Hyperdoc.config().serviceName,
+          authority: this.context.auth.userHrn,
           aggregateId: this.aggregateId,
           eventType: NodeEventType.PropertiesUpdatedV1,
           payload: nodeEventPayload
@@ -199,8 +215,8 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
       case NodeStateName.Enabled:
       case NodeStateName.Disabled:
         const nodeEvent: EventInput = {
-          source: "hyperdoc",
-          authority: "hyperdoc",
+          source: Hyperdoc.config().serviceName,
+          authority: this.context.auth.userHrn,
           aggregateId: this.aggregateId,
           eventType: NodeEventType.DeletedV1
         };
@@ -234,8 +250,8 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
           reason
         };
         const nodeEvent: EventInput = {
-          source: "hyperdoc",
-          authority: "hyperdoc",
+          source: Hyperdoc.config().serviceName,
+          authority: this.context.auth.userHrn,
           aggregateId: this.aggregateId,
           eventType: NodeEventType.DisabledV1,
           payload: nodeEventPayload
@@ -269,8 +285,8 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
     switch (this.currentState.name) {
       case NodeStateName.Disabled:
         const nodeEvent: EventInput = {
-          source: "hyperdoc",
-          authority: "hyperdoc",
+          source: Hyperdoc.config().serviceName,
+          authority: this.context.auth.userHrn,
           aggregateId: this.aggregateId,
           eventType: NodeEventType.EnabledV1
         };
@@ -303,8 +319,8 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
       case NodeStateName.Enabled:
       case NodeStateName.Disabled:
         const nodeEvent: EventInput = {
-          source: "hyperdoc",
-          authority: "hyperdoc",
+          source: Hyperdoc.config().serviceName,
+          authority: this.context.auth.userHrn,
           aggregateId: this.aggregateId,
           eventType: NodeEventType.LockedV1
         };
@@ -334,8 +350,8 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
     switch (this.currentState.name) {
       case NodeStateName.Locked:
         const nodeEvent: EventInput = {
-          source: "hyperdoc",
-          authority: "hyperdoc",
+          source: Hyperdoc.config().serviceName,
+          authority: this.context.auth.userHrn,
           aggregateId: this.aggregateId,
           eventType: NodeEventType.UnlockedV1
         };

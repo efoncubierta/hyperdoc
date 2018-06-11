@@ -20,11 +20,12 @@ function nodeAggregateTests() {
     });
 
     it("create() should be rejected on an existing node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate.create(mappingName, nodeProperties).then((nodeState) => {
           nodeState.should.exist;
           nodeState.name.should.be.equal(NodeStateName.Enabled);
@@ -36,11 +37,12 @@ function nodeAggregateTests() {
     });
 
     it("create() should be rejected on a deleted node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -59,11 +61,11 @@ function nodeAggregateTests() {
     });
 
     it("setProperties() should be rejected on a new node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
-      const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         const initialState = nodeAggregate.get();
         initialState.should.exist;
         initialState.name.should.be.equal(NodeStateName.New);
@@ -73,11 +75,12 @@ function nodeAggregateTests() {
     });
 
     it("setProperties() should be rejected on a locked node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -96,11 +99,12 @@ function nodeAggregateTests() {
     });
 
     it("setProperties() should be rejected on a disabled node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -119,11 +123,12 @@ function nodeAggregateTests() {
     });
 
     it("setProperties() should be rejected on a deleted node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -142,11 +147,12 @@ function nodeAggregateTests() {
     });
 
     it("disable()/enable() should disable and enable an existing node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -169,9 +175,10 @@ function nodeAggregateTests() {
     });
 
     it("disable() should be rejected on a new node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         const initialState = nodeAggregate.get();
         initialState.should.exist;
         initialState.name.should.be.equal(NodeStateName.New);
@@ -181,11 +188,12 @@ function nodeAggregateTests() {
     });
 
     it("disable() should be rejected on a locked node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -204,11 +212,12 @@ function nodeAggregateTests() {
     });
 
     it("disable() should be rejected on a deleted node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -227,11 +236,12 @@ function nodeAggregateTests() {
     });
 
     it("disable() should be idempotent on a disabled node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -254,9 +264,10 @@ function nodeAggregateTests() {
     });
 
     it("enable() should be rejected on a new node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         const initialState = nodeAggregate.get();
         initialState.should.exist;
         initialState.name.should.be.equal(NodeStateName.New);
@@ -266,11 +277,12 @@ function nodeAggregateTests() {
     });
 
     it("enable() should be idempotent on a enabled node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -287,11 +299,12 @@ function nodeAggregateTests() {
     });
 
     it("enable() should be rejected on a locked node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -310,11 +323,12 @@ function nodeAggregateTests() {
     });
 
     it("lock()/unlock() should lock and unlock an existing node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -337,9 +351,10 @@ function nodeAggregateTests() {
     });
 
     it("lock() should be rejected on a new node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         const initialState = nodeAggregate.get();
         initialState.should.exist;
         initialState.name.should.be.equal(NodeStateName.New);
@@ -349,11 +364,12 @@ function nodeAggregateTests() {
     });
 
     it("lock() should be rejected on a deleted node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -372,11 +388,12 @@ function nodeAggregateTests() {
     });
 
     it("lock() should be idempotent on a locked node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -399,11 +416,12 @@ function nodeAggregateTests() {
     });
 
     it("unlock() should be idempotent on a enabled/disabled node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -432,9 +450,10 @@ function nodeAggregateTests() {
     });
 
     it("unlock() should be rejected on a new node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         const initialState = nodeAggregate.get();
         initialState.should.exist;
         initialState.name.should.be.equal(NodeStateName.New);
@@ -444,11 +463,12 @@ function nodeAggregateTests() {
     });
 
     it("unlock() should be rejected on a deleted node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -467,11 +487,12 @@ function nodeAggregateTests() {
     });
 
     it("delete() should resolve on a disabled node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const nodeId = TestDataGenerator.randomNodeId();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(nodeId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, nodeId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
@@ -494,9 +515,10 @@ function nodeAggregateTests() {
     });
 
     it("delete() should be rejected on a new node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         const initialState = nodeAggregate.get();
         initialState.should.exist;
         initialState.name.should.be.equal(NodeStateName.New);
@@ -506,11 +528,12 @@ function nodeAggregateTests() {
     });
 
     it("delete() should be rejected on a locked node", () => {
+      const context = TestDataGenerator.randomExecutionContext();
       const aggregateId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomNodeProperties();
 
-      return NodeAggregate.build(aggregateId).then((nodeAggregate) => {
+      return NodeAggregate.build(context, aggregateId).then((nodeAggregate) => {
         return nodeAggregate
           .create(mappingName, nodeProperties)
           .then((nodeState) => {
