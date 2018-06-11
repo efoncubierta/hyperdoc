@@ -49,6 +49,7 @@ function nodePropertiesMappingGeneratorTest() {
     it("should generate a valid mapping from node properties", () => {
       const mappingId = TestDataGenerator.randomUUID();
       const mappingName = TestDataGenerator.randomMappingName();
+      const mappingStrictness = TestDataGenerator.randomMappingStrictnessLevel();
       const nodeProperties = TestDataGenerator.randomFullNodeProperties();
 
       const mappingProperties = NodePropertiesMappingGenerator.toMappingProperties(nodeProperties);
@@ -56,6 +57,7 @@ function nodePropertiesMappingGeneratorTest() {
       const mapping: Mapping = {
         mappingId,
         name: mappingName,
+        strictness: mappingStrictness,
         properties: mappingProperties
       };
 
