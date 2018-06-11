@@ -1,14 +1,16 @@
+// external dependencies
 import * as moment from "moment";
+import { Option, none, some } from "fp-ts/lib/Option";
+
+// Hyperdoc models
 import {
-  Mapping,
   MappingProperties,
   MappingProperty,
   MappingPropertyType,
   MappingNestedProperty,
-  MappingId
+  MappingNodeProperty
 } from "../model/Mapping";
 import { NodeProperties, NodePropertyType, NodePropertiesArray } from "../model/Node";
-import { Option, none, some } from "fp-ts/lib/Option";
 import { HRNPattern } from "../model/HRN";
 
 /**
@@ -18,16 +20,16 @@ export class NodePropertiesMappingGenerator {
   /**
    * Generate a mapping out of node properties.
    *
-   * @param mappingName Mapping name
    * @param nodeProperties Node properties
    * @returns Mapping
    */
-  public static toMapping(mappingId: MappingId, mappingName: string, nodeProperties: NodeProperties): Mapping {
-    return {
-      mappingId: mappingId,
-      name: mappingName,
-      properties: this.processNodeProperties(nodeProperties)
-    };
+  public static toMappingProperties(nodeProperties: NodeProperties): MappingProperties {
+    return this.processNodeProperties(nodeProperties);
+    // return {
+    //   mappingId: mappingId,
+    //   name: mappingName,
+    //   properties:
+    // };
   }
 
   /**
@@ -67,7 +69,9 @@ export class NodePropertiesMappingGenerator {
       return none;
     }
 
+    // default type is "text"
     let type = MappingPropertyType.Text;
+
     if (typeof value === "number") {
       type = this.guessNumberValue(value);
     } else if (typeof value === "string") {
@@ -85,6 +89,15 @@ export class NodePropertiesMappingGenerator {
         multiple,
         properties: this.processNodeProperties(nodeProperty as NodeProperties)
       } as MappingNestedProperty);
+    } else if (type === MappingPropertyType.Node) {
+      //const nodeId = (value as string).match(HRNPattern)[2];
+      // TODO guess mapping
+      return some({
+        type,
+        mandatory,
+        multiple,
+        mapping: "mapping"
+      } as MappingNodeProperty);
     } else {
       return some({
         type,

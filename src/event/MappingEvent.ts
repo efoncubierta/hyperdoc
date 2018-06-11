@@ -1,5 +1,5 @@
 import { Event } from "eventum-sdk";
-import { MappingProperties } from "../model/Mapping";
+import { MappingProperties, MappingStrictnessLevel } from "../model/Mapping";
 
 /**
  * Mapping event types.
@@ -7,6 +7,7 @@ import { MappingProperties } from "../model/Mapping";
 export enum MappingEventType {
   CreatedV1 = "MappingCreatedV1",
   PropertiesUpdatedV1 = "MappingPropertiesUpdatedV1",
+  StrictnessChangedV1 = "MappingStrictnessChangedV1",
   DeletedV1 = "MappingDeletedV1"
 }
 
@@ -26,6 +27,7 @@ export interface MappingCreatedV1 extends MappingEvent {
 }
 
 export interface MappingCreatedV1Payload {
+  readonly strictness: MappingStrictnessLevel;
   readonly name: string;
   readonly properties: MappingProperties;
 }
@@ -40,6 +42,18 @@ export interface MappingPropertiesUpdatedV1 extends MappingEvent {
 
 export interface MappingPropertiesUpdatedV1Payload {
   readonly properties: MappingProperties;
+}
+
+/**
+ * Mapping type changed event (version 1).
+ */
+export interface MappingStrictnessChangedV1 extends MappingEvent {
+  readonly eventType: MappingEventType.StrictnessChangedV1;
+  readonly payload: MappingStrictnessChangedV1Payload;
+}
+
+export interface MappingStrictnessChangedV1Payload {
+  readonly strictness: MappingStrictnessLevel;
 }
 
 /**

@@ -5,7 +5,14 @@ import { Aggregate, Snapshot, Event, EventInput } from "eventum-sdk";
 import { Hyperdoc } from "../Hyperdoc";
 
 // Hyperdoc models
-import { Mapping, MappingProperties, MappingId, MappingStateName, MappingState } from "../model/Mapping";
+import {
+  Mapping,
+  MappingProperties,
+  MappingId,
+  MappingStateName,
+  MappingState,
+  MappingStrictnessLevel
+} from "../model/Mapping";
 
 // Hyperdoc events
 import {
@@ -14,7 +21,8 @@ import {
   MappingDeletedV1,
   MappingEventType,
   MappingCreatedV1Payload,
-  MappingPropertiesUpdatedV1Payload
+  MappingPropertiesUpdatedV1Payload,
+  MappingStrictnessChangedV1Payload
 } from "../event/MappingEvent";
 
 /**
@@ -27,10 +35,11 @@ export interface IMappingAggregate {
    * Create a new mapping.
    *
    * @param name Mapping name
+   * @param strictness Mapping type
    * @param properties Mapping properties
    * @returns Promise that resolves to a mapping state
    */
-  create(name: string, properties: MappingProperties): Promise<MappingState>;
+  create(name: string, strictness: MappingStrictnessLevel, properties: MappingProperties): Promise<MappingState>;
 
   /**
    * Set mapping properties.
@@ -39,6 +48,14 @@ export interface IMappingAggregate {
    * @returns Promise that resolves to a mapping state
    */
   setProperties(properties: MappingProperties): Promise<MappingState>;
+
+  /**
+   * Change mapping strictness level.
+   *
+   * @param strictness Mapping strictness level
+   * @returns Promise that resolves to a mapping state
+   */
+  changeStrictness(strictness: MappingStrictnessLevel): Promise<MappingState>;
 
   /**
    * Delete a mapping
@@ -92,17 +109,25 @@ export class MappingAggregate extends Aggregate<MappingState> implements IMappin
    * - {@link MappingEventType.CreatedV1}
    *
    * @param name Mapping name
+   * @param strictness Mapping strictness
    * @param properties Mapping properties
    * @returns A promise that resolves to a mapping state
    */
-  public create(name: string, properties: MappingProperties): Promise<MappingState> {
+  public create(
+    name: string,
+    strictness: MappingStrictnessLevel,
+    properties: MappingProperties
+  ): Promise<MappingState> {
     switch (this.currentState.name) {
       case MappingStateName.New:
         const mappingEventPayload: MappingCreatedV1Payload = {
           name,
+          strictness,
           properties
         };
         const mappingEvent: EventInput = {
+          source: "hyperdoc",
+          authority: "hyperdoc",
           aggregateId: this.aggregateId,
           eventType: MappingEventType.CreatedV1,
           payload: mappingEventPayload
@@ -117,7 +142,7 @@ export class MappingAggregate extends Aggregate<MappingState> implements IMappin
    * Set mapping properties.
    *
    * Invariants:
-   * - Mapping state = {@link MappingStateName.Active}
+   * - Mapping state = {@link MappingStateName.Enabled}
    *
    * Events:
    * - {@link MappingEventType.PropertiesUpdatedV1}
@@ -132,6 +157,8 @@ export class MappingAggregate extends Aggregate<MappingState> implements IMappin
           properties
         };
         const mappingEvent: EventInput = {
+          source: "hyperdoc",
+          authority: "hyperdoc",
           aggregateId: this.aggregateId,
           eventType: MappingEventType.PropertiesUpdatedV1,
           payload: mappingEventPayload
@@ -145,10 +172,43 @@ export class MappingAggregate extends Aggregate<MappingState> implements IMappin
   }
 
   /**
+   * Change mapping strictness level.
+   *
+   * Invariants:
+   * - Mapping state = {@link MappingStateName.Enabled}
+   *
+   * Events:
+   * - {@link MappingEventType.TypeChangedV1}
+   *
+   * @param strictness Mapping type
+   * @returns A promise that resolves to a mapping state
+   */
+  changeStrictness(strictness: MappingStrictnessLevel): Promise<MappingState> {
+    switch (this.currentState.name) {
+      case MappingStateName.Enabled:
+        const mappingEventPayload: MappingStrictnessChangedV1Payload = {
+          strictness
+        };
+        const mappingEvent: EventInput = {
+          source: "hyperdoc",
+          authority: "hyperdoc",
+          aggregateId: this.aggregateId,
+          eventType: MappingEventType.StrictnessChangedV1,
+          payload: mappingEventPayload
+        };
+        return this.emit(mappingEvent);
+      default:
+        return Promise.reject(
+          `Cannot change type on mapping ${this.aggregateId}. It doesn't exist or it's been deleted.`
+        );
+    }
+  }
+
+  /**
    * Delete a mapping.
    *
    * Invariants:
-   * - Mapping state = {@link MappingStateName.Active}
+   * - Mapping state = {@link MappingStateName.Enabled}
    *
    * Events:
    * - {@link MappingEventType.DeletedV1}
@@ -159,6 +219,8 @@ export class MappingAggregate extends Aggregate<MappingState> implements IMappin
     switch (this.currentState.name) {
       case MappingStateName.Enabled:
         const mappingEvent: EventInput = {
+          source: "hyperdoc",
+          authority: "hyperdoc",
           aggregateId: this.aggregateId,
           eventType: MappingEventType.DeletedV1
         };
@@ -213,6 +275,7 @@ export class MappingAggregate extends Aggregate<MappingState> implements IMappin
   private aggregateMappingCreatedV1(event: MappingCreatedV1): void {
     const mapping: Mapping = {
       mappingId: event.aggregateId,
+      strictness: event.payload.strictness,
       name: event.payload.name,
       properties: event.payload.properties
     };

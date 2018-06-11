@@ -46,6 +46,7 @@ package:
 functions:
   - ${file(serverless/api-functions.yml)}
   - ${file(serverless/materializers-functions.yml)}
+  - ${file(serverless/saga-functions.yml)}
 
 resources:
   - ${file(serverless/dynamodb.yml)}

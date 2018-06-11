@@ -48,20 +48,21 @@ export class SchemaValidator {
   }
 
   /**
-   * Get a model validator based on the Node JSON schema plus custom mapping schema.
+   * Validate node properties.
    *
-   * @param mapping Mapping
-   * @returns JSON schema validator
+   * @param properties Node properties
    */
-  public static getModelValidatorFromMapping(mapping: Mapping): Validator {
-    // build node properties schema
-    const nodePropertiesSchema = MappingSchemaGenerator.toNodePropertiesSchema(mapping);
+  public static validateNodeProperties(nodeProperties: NodeProperties, mapping?: Mapping): ValidatorResult {
+    if (!mapping) {
+      return this.getModelValidator().validate(nodeProperties, NodePropertiesSchema);
+    } else {
+      const nodePropertiesSchema = MappingSchemaGenerator.toNodePropertiesSchema(mapping);
+      const validator = this.getModelValidator();
 
-    const validator = this.getModelValidator();
+      validator.addSchema(nodePropertiesSchema, NodePropertiesSchema.id);
 
-    // override NodePropertiesSchema with the custom version built from mapping
-    validator.addSchema(nodePropertiesSchema, NodePropertiesSchema.id);
-    return validator;
+      return validator.validate(nodeProperties, nodePropertiesSchema);
+    }
   }
 
   /**
@@ -80,14 +81,5 @@ export class SchemaValidator {
    */
   public static validateMappingProperties(properties: MappingProperties): ValidatorResult {
     return this.getModelValidator().validate(properties, MappingPropertiesSchema);
-  }
-
-  /**
-   * Validate node properties.
-   *
-   * @param properties Node properties
-   */
-  public static validateNodeProperties(properties: NodeProperties): ValidatorResult {
-    return this.getModelValidator().validate(properties, NodePropertiesSchema);
   }
 }

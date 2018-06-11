@@ -105,20 +105,23 @@ function mappingServiceTests() {
 
     it("create() should be rejected if a mapping with the same name already exists", () => {
       const mappingName = TestDataGenerator.randomMappingName();
+      const mappingStrictness = TestDataGenerator.randomMappingStrictnessLevel();
       const mappingProperties = TestDataGenerator.randomMappingProperties();
 
-      return MappingWriter.create(testExecutionContext, mappingName, mappingProperties).then((mapping) => {
-        chai.should().exist(mapping);
+      return MappingWriter.create(testExecutionContext, mappingName, mappingStrictness, mappingProperties).then(
+        (mapping) => {
+          chai.should().exist(mapping);
 
-        mapping.name.should.equal(mappingName);
-        mapping.properties.should.eql(mappingProperties);
+          mapping.name.should.equal(mappingName);
+          mapping.properties.should.eql(mappingProperties);
 
-        // update in-memory store to facilite the new node to MappingService.get()
-        InMemoryMappingStore.put(mapping);
+          // update in-memory store to facilite the new node to MappingService.get()
+          InMemoryMappingStore.put(mapping);
 
-        const p = MappingWriter.create(testExecutionContext, mappingName, mappingProperties);
-        return p.should.be.rejectedWith(MappingWriterError);
-      });
+          const p = MappingWriter.create(testExecutionContext, mappingName, mappingStrictness, mappingProperties);
+          return p.should.be.rejectedWith(MappingWriterError);
+        }
+      );
     });
 
     it("create() should be rejected if a mapping name or properties are not valid", () => {
@@ -153,11 +156,12 @@ function mappingServiceTests() {
 
     it("setProperties() should set properties to an existing mapping", () => {
       const mappingName = TestDataGenerator.randomMappingName();
+      const mappingStrictness = TestDataGenerator.randomMappingStrictnessLevel();
       const mappingProperties = TestDataGenerator.randomMappingProperties();
       const mappingProperties2 = TestDataGenerator.randomMappingProperties();
 
       let mappingId;
-      return MappingWriter.create(testExecutionContext, mappingName, mappingProperties)
+      return MappingWriter.create(testExecutionContext, mappingName, mappingStrictness, mappingProperties)
         .then((mapping) => {
           chai.should().exist(mapping);
 

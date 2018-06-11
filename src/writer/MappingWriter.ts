@@ -5,7 +5,14 @@ import * as UUID from "uuid";
 import { ExecutionContext } from "../ExecutionContext";
 
 // Hyperdoc models
-import { Mapping, MappingProperties, MappingId, MappingStateName, MappingState } from "../model/Mapping";
+import {
+  Mapping,
+  MappingProperties,
+  MappingId,
+  MappingStateName,
+  MappingState,
+  MappingStrictnessLevel
+} from "../model/Mapping";
 
 // Hyperdoc aggregates
 import { MappingAggregate, IMappingAggregate } from "../aggregate/MappingAggregate";
@@ -26,11 +33,17 @@ export class MappingWriter {
    *
    * @param context Execution context
    * @param name Mapping name
+   * @param strictness Mapping type
    * @param properties Mapping properties
    *
    * @returns A promise that resolves the mapping just created
    */
-  public static create(context: ExecutionContext, name: string, properties: MappingProperties): Promise<Mapping> {
+  public static create(
+    context: ExecutionContext,
+    name: string,
+    strictness: MappingStrictnessLevel,
+    properties: MappingProperties
+  ): Promise<Mapping> {
     // TODO check permissions
 
     // validation
@@ -38,13 +51,13 @@ export class MappingWriter {
     MappingWriter.validateMappingProperties(properties);
 
     //  new mapping UUID
-    const mappingId: MappingId = UUID.v1();
+    const mappingId: MappingId = UUID.v4();
 
     return MappingReader.getByName(context, name).then((mappingOpt) => {
       return mappingOpt.foldL(
         () => {
           // invoke create() in the aggregate. New state must be "Enabled"
-          return MappingWriter.runAggregate(mappingId)((aggregate) => aggregate.create(name, properties), [
+          return MappingWriter.runAggregate(mappingId)((aggregate) => aggregate.create(name, strictness, properties), [
             MappingStateName.Enabled
           ]);
         },
@@ -60,7 +73,7 @@ export class MappingWriter {
    * Set mapping properties.
    *
    * @param context Execution context
-   * @param mappingId Mapping uuid
+   * @param mappingId Mapping ID
    * @param properties Mapping properties
    *
    * @returns A promise that resolves the mapping just updated

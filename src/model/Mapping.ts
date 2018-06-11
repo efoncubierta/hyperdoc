@@ -4,7 +4,14 @@
 export interface Mapping {
   readonly mappingId: MappingId;
   readonly name: string;
+  readonly strictness: MappingStrictnessLevel;
   readonly properties: MappingProperties;
+}
+
+export enum MappingStrictnessLevel {
+  Free = "free",
+  Organic = "organic",
+  Strict = "strict"
 }
 
 /**
@@ -63,7 +70,7 @@ export interface MappingNodeProperty extends MappingProperty {
 }
 
 export interface MappingResourceProperty extends MappingProperty {
-  readonly kind: string;
+  readonly location: string;
 }
 
 /**

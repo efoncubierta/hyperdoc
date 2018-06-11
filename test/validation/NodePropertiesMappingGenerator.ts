@@ -5,7 +5,7 @@ import { expect } from "chai";
 import "mocha";
 
 // models
-import { MappingProperties, MappingPropertyType, MappingProperty } from "../../src/model/Mapping";
+import { MappingProperties, MappingPropertyType, MappingProperty, Mapping } from "../../src/model/Mapping";
 import { NodeProperties } from "../../src/model/Node";
 
 // schemas
@@ -51,7 +51,13 @@ function nodePropertiesMappingGeneratorTest() {
       const mappingName = TestDataGenerator.randomMappingName();
       const nodeProperties = TestDataGenerator.randomFullNodeProperties();
 
-      const mapping = NodePropertiesMappingGenerator.toMapping(mappingId, mappingName, nodeProperties);
+      const mappingProperties = NodePropertiesMappingGenerator.toMappingProperties(nodeProperties);
+
+      const mapping: Mapping = {
+        mappingId,
+        name: mappingName,
+        properties: mappingProperties
+      };
 
       expect(mapping).to.exist;
       validateMapping(nodeProperties, mapping.properties);

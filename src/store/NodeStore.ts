@@ -2,10 +2,10 @@
 import { Option } from "fp-ts/lib/Option";
 
 // Hyperdoc models
-import { Node } from "../model/Node";
+import { Node, NodeId } from "../model/Node";
 
 export interface NodeStore {
-  get(uuid: string): Promise<Option<Node>>;
+  get(nodeId: NodeId): Promise<Option<Node>>;
   put(node: Node): Promise<void>;
-  delete(uuid: string): Promise<void>;
+  delete(nodeId: NodeId): Promise<void>;
 }

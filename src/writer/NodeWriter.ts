@@ -38,7 +38,7 @@ export class NodeWriter {
     // TODO check permissions
 
     // new node UUID
-    const nodeId = UUID.v1();
+    const nodeId = UUID.v4();
 
     return MappingReader.getByName(context, mappingName).then((mappingOpt) => {
       // validate properties
@@ -56,7 +56,7 @@ export class NodeWriter {
    * Set node properties.
    *
    * @param context Execution context
-   * @param nodeId Node UUID
+   * @param nodeId Node ID
    * @param properties Node properties
    *
    * @returns A promise that resolves the node just updated
@@ -139,13 +139,8 @@ export class NodeWriter {
    * @throws An error if the validation doesn't pass
    */
   private static validateNodeProperties(properties: NodeProperties, mapping?: Mapping) {
-    // get a validator for the mapping or default node validator if new mapping
-    const validator = mapping
-      ? SchemaValidator.getModelValidatorFromMapping(mapping)
-      : SchemaValidator.getModelValidator();
-
     // validate node against the JSON schema and process errors
-    const result = validator.validate(properties, NodePropertiesSchema);
+    const result = SchemaValidator.validateNodeProperties(properties, mapping);
     if (result.errors.length > 0) {
       throw new NodeWriterError(result.errors[0].message);
     }

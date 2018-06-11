@@ -38,7 +38,7 @@ export class MappingReader {
    * Get a mapping.
    *
    * @param context Execution context
-   * @param mappingId Mapping uuid
+   * @param mappingId Mapping ID
    *
    * @returns A promise that resolve to an optional mapping
    */

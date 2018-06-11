@@ -1,5 +1,5 @@
 export interface AuthenticationContext {
-  userUuid: string;
+  userHrn: string;
 }
 
 export interface ExecutionContext {

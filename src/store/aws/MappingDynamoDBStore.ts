@@ -57,7 +57,10 @@ export class MappingDynamoDBStore extends DynamoDBStore implements MappingStore 
       .query({
         TableName: this.mappingsTableConfig.tableName,
         IndexName: "NameIndex",
-        KeyConditionExpression: "name = :name",
+        KeyConditionExpression: "#name = :name",
+        ExpressionAttributeNames: {
+          "#name": "name"
+        },
         ExpressionAttributeValues: {
           ":name": name
         },
@@ -65,7 +68,7 @@ export class MappingDynamoDBStore extends DynamoDBStore implements MappingStore 
       })
       .promise()
       .then((result) => {
-        return result.Items && result.Items.length > 0 ? some(result.Items[0] as Mapping) : none;
+        return result.Items && result.Items.length > 0 ? this.get(result.Items[0].mappingId) : none;
       });
   }
 

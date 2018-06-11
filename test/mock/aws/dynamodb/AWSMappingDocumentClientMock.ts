@@ -43,7 +43,7 @@ export class AWSMappingDocumentClientMock implements AWSDocumentClientMock {
   }
 
   public handleQuery(params: any, callback: (error?: Error, response?: any) => void): void {
-    if (params.KeyConditionExpression === "name = :name") {
+    if (params.KeyConditionExpression === "#name = :name") {
       const name = params.ExpressionAttributeValues[":name"];
       callback(null, {
         Items: InMemoryMappingStore.findByName(name)

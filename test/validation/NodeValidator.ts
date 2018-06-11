@@ -27,8 +27,7 @@ function nodeValidatorTest() {
       const testMapping = TestDataGenerator.fullMapping();
       const testNode = TestDataGenerator.randomFullNode();
 
-      const validator = SchemaValidator.getModelValidatorFromMapping(testMapping);
-      const result = validator.validate(testNode, NodeSchema);
+      const result = SchemaValidator.validateNodeProperties(testNode.properties, testMapping);
 
       if (result.errors.length > 0) {
         done(new Error(result.errors[0].message));

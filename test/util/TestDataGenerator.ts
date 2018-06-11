@@ -11,7 +11,8 @@ import {
   MappingPropertyType,
   MappingNestedProperty,
   MappingProperty,
-  MappingId
+  MappingId,
+  MappingStrictnessLevel
 } from "../../src/model/Mapping";
 import { Node, NodeProperties, NodeId } from "../../src/model/Node";
 import { Audit } from "../../src/model/Audit";
@@ -48,6 +49,7 @@ export class TestDataGenerator {
     return {
       mappingId: this.randomMappingId(),
       name: this.randomMappingName(),
+      strictness: this.randomMappingStrictnessLevel(),
       properties: this.fullMappingProperties()
     };
   }
@@ -56,6 +58,7 @@ export class TestDataGenerator {
     return {
       mappingId: this.randomMappingId(),
       name: this.randomMappingName(),
+      strictness: this.randomMappingStrictnessLevel(),
       properties: this.randomMappingProperties()
     };
   }
@@ -66,6 +69,14 @@ export class TestDataGenerator {
       .replace(/[0-9-\s,._]/g, "")
       .slice(0, 10)
       .toLowerCase();
+  }
+
+  public static randomMappingStrictnessLevel(): MappingStrictnessLevel {
+    return faker.random.arrayElement([
+      MappingStrictnessLevel.Free,
+      MappingStrictnessLevel.Organic,
+      MappingStrictnessLevel.Strict
+    ]);
   }
 
   public static fullMappingProperties(): MappingProperties {
@@ -322,6 +333,10 @@ export class TestDataGenerator {
     return `hyperdoc:resource:${this.randomUUID()}`;
   }
 
+  public static randomUserHRN(): string {
+    return `hyperdoc:user:${this.randomUUID()}`;
+  }
+
   public static randomUsername(): string {
     return faker.random.word();
   }
@@ -332,7 +347,7 @@ export class TestDataGenerator {
 
   public static randomAuthenticationContext(): AuthenticationContext {
     return {
-      userUuid: TestDataGenerator.randomUUID()
+      userHrn: TestDataGenerator.randomUserHRN()
     };
   }
 
@@ -346,6 +361,8 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: MappingEventType.CreatedV1,
+      source: "hyperdoc",
+      authority: "system",
       occurredAt: faker.date.past().toISOString(),
       aggregateId: mappingId ? mappingId : this.randomMappingId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000),
@@ -356,6 +373,7 @@ export class TestDataGenerator {
   public static randomMappingCreatedV1Payload(): MappingCreatedV1Payload {
     return {
       name: this.randomMappingName(),
+      strictness: this.randomMappingStrictnessLevel(),
       properties: this.randomMappingProperties()
     };
   }
@@ -364,6 +382,8 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: MappingEventType.PropertiesUpdatedV1,
+      source: "hyperdoc",
+      authority: "system",
       occurredAt: faker.date.past().toISOString(),
       aggregateId: mappingId ? mappingId : this.randomMappingId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000),
@@ -381,6 +401,8 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: MappingEventType.DeletedV1,
+      source: "hyperdoc",
+      authority: "system",
       occurredAt: faker.date.past().toISOString(),
       aggregateId: mappingId ? mappingId : this.randomMappingId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000)
@@ -391,6 +413,8 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: NodeEventType.CreatedV1,
+      source: "hyperdoc",
+      authority: "system",
       occurredAt: faker.date.past().toISOString(),
       aggregateId: nodeId ? nodeId : this.randomNodeId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000),
@@ -409,6 +433,8 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: NodeEventType.PropertiesUpdatedV1,
+      source: "hyperdoc",
+      authority: "system",
       occurredAt: faker.date.past().toISOString(),
       aggregateId: nodeId ? nodeId : this.randomNodeId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000),
@@ -426,6 +452,8 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: NodeEventType.EnabledV1,
+      source: "hyperdoc",
+      authority: "system",
       occurredAt: faker.date.past().toISOString(),
       aggregateId: nodeId ? nodeId : this.randomNodeId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000)
@@ -436,6 +464,8 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: NodeEventType.DisabledV1,
+      source: "hyperdoc",
+      authority: "system",
       occurredAt: faker.date.past().toISOString(),
       aggregateId: nodeId ? nodeId : this.randomNodeId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000),
@@ -453,6 +483,8 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: NodeEventType.LockedV1,
+      source: "hyperdoc",
+      authority: "system",
       occurredAt: faker.date.past().toISOString(),
       aggregateId: nodeId ? nodeId : this.randomNodeId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000)
@@ -463,6 +495,8 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: NodeEventType.UnlockedV1,
+      source: "hyperdoc",
+      authority: "system",
       occurredAt: faker.date.past().toISOString(),
       aggregateId: nodeId ? nodeId : this.randomNodeId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000)
@@ -473,6 +507,8 @@ export class TestDataGenerator {
     return {
       eventId: this.randomUUID(),
       eventType: NodeEventType.DeletedV1,
+      source: "hyperdoc",
+      authority: "system",
       occurredAt: faker.date.past().toISOString(),
       aggregateId: nodeId ? nodeId : this.randomNodeId(),
       sequence: sequence >= 0 ? sequence : faker.random.number(1000)

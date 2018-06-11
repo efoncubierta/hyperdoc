@@ -10,7 +10,7 @@ import getGraphqlSchema from "../../graphql/schema";
 
 const executionContext: ExecutionContext = {
   auth: {
-    userUuid: "1234"
+    userHrn: "1234"
   }
 };
 
@@ -34,7 +34,8 @@ export const handler: Handler = (event: APIGatewayEvent, context: Context, callb
     .then((graphqlSchema) => {
       // create Apollo GraphQL server
       const graphqlHandler = graphqlLambda({
-        schema: graphqlSchema
+        schema: graphqlSchema,
+        debug: true
       });
 
       return graphqlHandler(event, context, callbackFilter);

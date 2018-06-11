@@ -6,7 +6,7 @@ import { ExecutionContext } from "../ExecutionContext";
 // Hyperdoc readers
 import { MappingReader } from "../reader/MappingReader";
 
-import mappingsToGraphql from "./mapper";
+import { MappingsToGraphQLSchemaMapper } from "./MappingsToGraphQLSchemaMapper";
 
 /**
  * Get a GraphQL schema from mapping service.
@@ -14,7 +14,8 @@ import mappingsToGraphql from "./mapper";
  * @returns GraphQL schema
  */
 function getGraphqlSchema(context: ExecutionContext): Promise<GraphQLSchema> {
-  return MappingReader.list(context).then(mappingsToGraphql);
+  const mapper = new MappingsToGraphQLSchemaMapper();
+  return MappingReader.list(context).then(mapper.map);
 }
 
 export default getGraphqlSchema;

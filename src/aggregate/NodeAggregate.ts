@@ -132,6 +132,8 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
           properties
         };
         const nodeEvent: EventInput = {
+          source: "hyperdoc",
+          authority: "hyperdoc",
           aggregateId: this.aggregateId,
           eventType: NodeEventType.CreatedV1,
           payload: nodeEventPayload
@@ -164,6 +166,8 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
           properties
         };
         const nodeEvent: EventInput = {
+          source: "hyperdoc",
+          authority: "hyperdoc",
           aggregateId: this.aggregateId,
           eventType: NodeEventType.PropertiesUpdatedV1,
           payload: nodeEventPayload
@@ -195,6 +199,8 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
       case NodeStateName.Enabled:
       case NodeStateName.Disabled:
         const nodeEvent: EventInput = {
+          source: "hyperdoc",
+          authority: "hyperdoc",
           aggregateId: this.aggregateId,
           eventType: NodeEventType.DeletedV1
         };
@@ -228,6 +234,8 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
           reason
         };
         const nodeEvent: EventInput = {
+          source: "hyperdoc",
+          authority: "hyperdoc",
           aggregateId: this.aggregateId,
           eventType: NodeEventType.DisabledV1,
           payload: nodeEventPayload
@@ -261,6 +269,8 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
     switch (this.currentState.name) {
       case NodeStateName.Disabled:
         const nodeEvent: EventInput = {
+          source: "hyperdoc",
+          authority: "hyperdoc",
           aggregateId: this.aggregateId,
           eventType: NodeEventType.EnabledV1
         };
@@ -293,6 +303,8 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
       case NodeStateName.Enabled:
       case NodeStateName.Disabled:
         const nodeEvent: EventInput = {
+          source: "hyperdoc",
+          authority: "hyperdoc",
           aggregateId: this.aggregateId,
           eventType: NodeEventType.LockedV1
         };
@@ -322,6 +334,8 @@ export class NodeAggregate extends Aggregate<NodeState> implements INodeAggregat
     switch (this.currentState.name) {
       case NodeStateName.Locked:
         const nodeEvent: EventInput = {
+          source: "hyperdoc",
+          authority: "hyperdoc",
           aggregateId: this.aggregateId,
           eventType: NodeEventType.UnlockedV1
         };

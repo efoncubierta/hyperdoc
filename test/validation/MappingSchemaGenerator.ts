@@ -6,7 +6,7 @@ import { Schema } from "jsonschema";
 import "mocha";
 
 // models
-import { Mapping, MappingProperties, MappingPropertyType, MappingNestedProperty } from "../../src/model/Mapping";
+import { MappingProperties, MappingPropertyType, MappingNestedProperty } from "../../src/model/Mapping";
 
 // model schemas
 import { MappingSchemaGenerator } from "../../src/validation/MappingSchemaGenerator";

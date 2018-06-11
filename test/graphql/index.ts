@@ -1,30 +1,33 @@
 // tslint:disable:no-unused-expression
 
 // test framework dependencies
-import * as UUID from "uuid";
-import { expect } from "chai";
+import * as chai from "chai";
 import "mocha";
 
-// external dependencies
+// External dependencies
 import { GraphQLObjectType } from "graphql";
 
-// models
-import { Mappings, MappingPropertyType } from "../../src/model/Mapping";
+// Hyperdoc models
+import { Mappings, MappingPropertyType, MappingStrictnessLevel } from "../../src/model/Mapping";
 
-// GraphQL mapper
-import mappingsToGraphql from "../../src/graphql/mapper";
+// Hyperdoc GraphQL
+import { MappingsToGraphQLSchemaMapper } from "../../src/graphql/MappingsToGraphQLSchemaMapper";
+
+// test dependencies
+import { TestDataGenerator } from "../util/TestDataGenerator";
 
 const MAPPINGS: Mappings = {
   Type1: {
-    mappingId: UUID.v1(),
+    mappingId: TestDataGenerator.randomUUID(),
     name: "Type1",
+    strictness: MappingStrictnessLevel.Organic,
     properties: {
-      // type2: {
-      //   type: MappingPropertyType.Node,
-      //   mandatory: true,
-      //   multiple: false,
-      //   mapping: "Type2"
-      // },
+      type2: {
+        type: MappingPropertyType.Node,
+        mandatory: true,
+        multiple: false,
+        mapping: "Type2"
+      },
       name: {
         type: MappingPropertyType.Text,
         mandatory: true,
@@ -55,8 +58,9 @@ const MAPPINGS: Mappings = {
     }
   },
   Type2: {
-    mappingId: UUID.v1(),
+    mappingId: TestDataGenerator.randomUUID(),
     name: "Type2",
+    strictness: MappingStrictnessLevel.Organic,
     properties: {
       name: {
         type: MappingPropertyType.Text,
@@ -70,33 +74,36 @@ const MAPPINGS: Mappings = {
 function graphqlTests() {
   describe("GraphQL", () => {
     describe("Mapper", () => {
-      it("should maps the mappings to GraphQL schema", (done) => {
-        mappingsToGraphql(MAPPINGS)
-          .then((graphqlSchema) => {
-            expect(graphqlSchema).to.exist;
+      it("should maps the mappings to GraphQL schema", () => {
+        const mapper = new MappingsToGraphQLSchemaMapper();
+        const graphqlSchema = mapper.map(MAPPINGS);
 
-            // validate query type
-            const queryType = graphqlSchema.getQueryType();
-            const queryTypeFields = queryType.getFields();
-            expect(queryType).to.exist;
-            expect(queryTypeFields.Type1).to.exist;
-            expect(queryTypeFields.Type2).to.exist;
-            expect(queryTypeFields.Node).to.exist;
+        chai.should().exist(graphqlSchema);
 
-            // validate mutation type
-            const mutationType = graphqlSchema.getMutationType();
-            expect(mutationType).to.exist;
+        // validate query type
+        const queryType = graphqlSchema.getQueryType();
+        const queryTypeFields = queryType.getFields();
+        chai.should().exist(queryType);
+        chai.should().exist(queryTypeFields);
+        queryTypeFields.Type1.should.exist;
+        queryTypeFields.Type2.should.exist;
+        queryTypeFields.Node.should.exist;
 
-            // validate Type 1 type
-            const type1Type = graphqlSchema.getType("Type1") as GraphQLObjectType;
-            const type1TypeFields = type1Type.getFields();
-            expect(type1Type).to.exist;
+        // validate mutation type
+        const mutationType = graphqlSchema.getMutationType();
+        chai.should().exist(mutationType);
 
-            expect(type1TypeFields.name).to.exist;
-            expect(type1TypeFields.dates).to.exist;
-            expect(type1TypeFields.tags).to.exist;
-          })
-          .then(done);
+        // validate Type 1 type
+        const type1Type = graphqlSchema.getType("Type1") as GraphQLObjectType;
+        const type1TypeFields = type1Type.getFields();
+        chai.should().exist(type1Type);
+        chai.should().exist(type1TypeFields);
+
+        type1TypeFields.name.should.exist;
+        type1TypeFields.dates.should.exist;
+        type1TypeFields.tags.should.exist;
+
+        type1TypeFields.type2.should.exist;
       });
     });
   });
